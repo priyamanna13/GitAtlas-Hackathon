@@ -1,139 +1,315 @@
-# GitAtlas 🗺️
+# 🚀 GitAtlas
 
-> **An agentic AI system that analyzes any GitHub repository — mapping its architecture, detecting complexity, and generating actionable improvement recommendations.**
+> **Understand any GitHub repository instantly using AI-powered multi-agent analysis.**
 
-![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green?style=flat-square&logo=fastapi)
-![LLM](https://img.shields.io/badge/LLM-Groq%20%7C%20Llama3-orange?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square\&logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green?style=flat-square\&logo=fastapi)
+![GitHub Copilot](https://img.shields.io/badge/GitHub-Copilot-black?style=flat-square\&logo=github)
+![GitHub Models](https://img.shields.io/badge/GitHub-Models-black?style=flat-square\&logo=github)
+![Groq](https://img.shields.io/badge/AI-Groq-orange?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-purple?style=flat-square)
 
 ---
 
-## What is GitAtlas?
+## 🌟 Overview
 
-GitAtlas is a **multi-agent AI pipeline** that takes any public GitHub repository URL and produces a deep technical analysis — without the user reading a single line of code.
+GitAtlas is an **AI-powered developer platform** that analyzes GitHub repositories using a collaborative **multi-agent architecture**.
 
-It uses a **3-stage agentic architecture** inspired by perception-reasoning-action loops in autonomous systems:
+Simply paste any public GitHub repository URL and GitAtlas automatically:
+
+* 🧠 Understands the architecture
+* 📊 Measures software complexity
+* 🗺️ Generates dependency graphs
+* 🔒 Detects potential risks
+* 📚 Creates documentation
+* 💬 Answers repository questions
+* 📝 Generates AI-powered Pull Request drafts
+* ⚖️ Compares repositories
+* 🚀 Suggests modernization strategies
+
+Built for the **Microsoft AI Agents League Hackathon 2026**.
+
+---
+
+# ✨ Features
+
+### 🧠 Multi-Agent Repository Analysis
+
+A collaborative AI pipeline inspired by the **Perception → Reasoning → Action** model.
+
+### 🏛️ Architecture Detection
+
+Automatically identifies software architecture including:
+
+* MVC
+* Layered Architecture
+* Microservices
+* Monolith
+* Event Driven Systems
+
+with confidence scoring.
+
+---
+
+### 📊 Dependency Graph Generation
+
+Visualizes relationships between modules and identifies critical dependencies.
+
+---
+
+### 📈 Complexity Analysis
+
+Provides:
+
+* Overall complexity score
+* Module complexity
+* Maintainability insights
+
+---
+
+### 🔒 Security & Risk Detection
+
+Detects:
+
+* Security risks
+* Architectural bottlenecks
+* Code quality issues
+* Maintainability concerns
+
+---
+
+### 💬 AI Repository Chat
+
+Ask natural language questions about any analyzed repository.
+
+Examples:
+
+* Explain authentication flow.
+* Where is routing implemented?
+* Which modules are tightly coupled?
+
+---
+
+### 📝 AI Pull Request Draft Generation
+
+Automatically generates professional Pull Request drafts including:
+
+* PR Title
+* Branch Name
+* Implementation Summary
+* Affected Modules
+* Testing Checklist
+* Risk Assessment
+* Review Notes
+
+---
+
+### 📚 Documentation Generator
+
+Automatically generates:
+
+* Repository overview
+* Architecture explanation
+* Onboarding documentation
+
+---
+
+### ⚖️ Repository Comparison
+
+Compare two repositories side-by-side to understand architectural and implementation differences.
+
+---
+
+### 🚀 Modernization Recommendations
+
+Produces prioritized recommendations with estimated implementation effort.
+
+---
+
+# 🤖 AI Agent Pipeline
+
+GitAtlas follows a collaborative multi-agent workflow.
 
 ```
-GitHub URL → [Perception Agent] → [Reasoning Agent] → [Action Agent] → Report + Graph
+GitHub Repository
+        │
+        ▼
+Perception Agent
+(Language • Framework • Metadata)
+        │
+        ▼
+Reasoning Agent
+(Architecture • Complexity • Security)
+        │
+        ▼
+Action Agent
+(Docs • PR Drafts • Recommendations)
+        │
+        ▼
+Interactive Dashboard
 ```
 
-Results stream live to a browser UI via **Server-Sent Events (SSE)**, with a dependency graph rendered using matplotlib and an interactive chat interface to ask follow-up questions about the repo.
+---
+
+# 🏗️ Architecture
+
+*(Insert architecture diagram here)*
 
 ---
 
-## Architecture
+# 🪟 Microsoft Technologies Used
 
-### Agent Pipeline
+GitAtlas combines Microsoft's developer ecosystem with high-performance AI inference.
 
-| Agent | Model | Role |
-|-------|-------|------|
-| **Perception** | Llama 3.1 8B (Groq) | Fetches repo via GitHub API, selects top files, detects languages & frameworks |
-| **Reasoning** | Llama 3.3 70B (Groq) | Builds module map, detects architecture pattern, scores complexity |
-| **Action** | Llama 3.3 70B (Groq) | Generates improvements, modernization plan, onboarding guide, quality score |
+| Technology        | Purpose                                                                                               |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
+| GitHub Copilot    | Assisted development, backend refactoring, prompt engineering, and AI Pull Request Draft improvements |
+| GitHub Models API | AI-assisted repository interactions                                                                   |
+| GitHub REST API   | Repository retrieval and metadata analysis                                                            |
+| Groq Llama Models | Multi-agent reasoning, documentation generation, architecture analysis                                |
 
-### Tech Stack
+### GitHub Copilot Usage
 
-- **Backend:** FastAPI + uvicorn, SSE streaming
-- **AI Inference:** Groq API (Llama 3.1 8B, Llama 3.3 70B)
-- **Graph Generation:** matplotlib + networkx
-- **Frontend:** Vanilla JS + HTML (single-file, no build step)
-- **Deployment:** Heroku (Procfile included)
+GitHub Copilot was actively used during development to:
 
----
-
-## Features
-
-- 🔍 **Repo Fetching** — Pulls files intelligently via GitHub API, prioritizing important files
-- 🧠 **Architecture Detection** — Identifies MVC, microservices, monolith, etc. with confidence score
-- 📊 **Complexity Scoring** — 0–100 score with breakdown by module
-- 🗺️ **Dependency Graph** — Visual graph of module relationships, highlights critical nodes
-- 💡 **Actionable Improvements** — Top 5 prioritized suggestions with effort estimates
-- 🚀 **Modernization Plan** — Step-by-step upgrade roadmap
-- 💬 **Repo Chat** — Ask questions about any repo in natural language
-- ⚡ **Live Streaming** — Results appear in real-time via SSE, no waiting for full response
-- 🔄 **Repo Comparison** — Compare two repos side by side
+* Improve backend implementation
+* Refactor existing logic
+* Enhance prompt engineering
+* Improve AI Pull Request Draft generation
+* Accelerate development
 
 ---
 
-## Getting Started
+# ⚙️ Tech Stack
 
-### Prerequisites
-- Python 3.10+
-- Groq API key (free at [console.groq.com](https://console.groq.com))
-- GitHub Personal Access Token (for higher API rate limits)
+## Backend
 
-### Installation
+* Python
+* FastAPI
+* Uvicorn
+
+## AI
+
+* Groq API
+* Llama 3.1 8B
+* Llama 3.3 70B
+* GitHub Models API
+
+## Developer Tools
+
+* GitHub Copilot
+* GitHub REST API
+
+## Visualization
+
+* Matplotlib
+* NetworkX
+
+## Frontend
+
+* HTML
+* CSS
+* JavaScript
+
+---
+
+# 🚀 Installation
 
 ```bash
-git clone https://github.com/Systembugg/gitatlas.git
-cd gitatlas
+git clone https://github.com/priyamanna13/GitAtlas-Hackathon.git
+
+cd GitAtlas
+
+python -m venv venv
+
+venv\Scripts\activate
+
 pip install -r requirements.txt
 ```
 
-### Configuration
+---
 
-Create a `.env` file:
+# 🔑 Environment Variables
+
+Create a `.env`
 
 ```env
 GROQ_API_KEY=your_groq_api_key
-GITHUB_TOKEN=your_github_token  # optional but recommended
+GITHUB_TOKEN=your_github_token
 ```
 
-### Run
+---
+
+# ▶️ Run
 
 ```bash
 python server.py
-# Open http://localhost:8000
+```
+
+Open:
+
+```
+http://localhost:8000
 ```
 
 ---
 
-## Project Structure
+# 📡 API Endpoints
 
-```
-gitatlas/
-├── server.py           # FastAPI backend, SSE streaming, all API routes
-├── github_fetcher.py   # GitHub API client, intelligent file selection
-├── perception.py       # Perception Agent — language/framework detection
-├── reasoning.py        # Reasoning Agent — architecture analysis, module mapping
-├── action.py           # Action Agent — improvements, chat, docs generation
-├── graph_builder.py    # Dependency graph rendering with matplotlib
-├── pocketflow.py       # Lightweight agent orchestration framework
-├── index.html          # Full frontend (single file, no build step)
-├── requirements.txt
-└── Procfile            # Heroku deployment
-```
+| Method | Endpoint       | Purpose                  |
+| ------ | -------------- | ------------------------ |
+| GET    | `/api/analyze` | Analyze repository       |
+| POST   | `/api/chat`    | Repository Chat          |
+| POST   | `/api/docs`    | Documentation Generation |
+| POST   | `/api/pr`      | AI Pull Request Draft    |
+| POST   | `/api/compare` | Repository Comparison    |
+| GET    | `/api/health`  | Health Check             |
 
 ---
 
-## API Endpoints
+# 🎯 Why GitAtlas?
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/analyze?url=<repo_url>` | Stream full analysis via SSE |
-| `POST` | `/api/chat` | Chat with the analyzed repo |
-| `POST` | `/api/docs` | Generate documentation |
-| `POST` | `/api/compare` | Compare two repositories |
-| `GET` | `/api/health` | Health check |
+Modern repositories are becoming increasingly difficult to understand.
 
----
+GitAtlas helps developers:
 
-## Motivation
+* Reduce onboarding time
+* Understand unfamiliar codebases
+* Detect architectural issues
+* Improve software quality
+* Generate documentation automatically
+* Accelerate repository exploration
 
-Most code intelligence tools require installing plugins, setting up local environments, or are locked behind expensive enterprise plans. GitAtlas makes deep repo analysis **zero-friction** — paste a URL, get a full architectural report in under 60 seconds.
-
-The agentic design (perception → reasoning → action) mirrors how an experienced developer actually reads a codebase: first scan the structure, then understand the relationships, then decide what to improve.
+Instead of manually reading hundreds of files, developers receive AI-powered insights within seconds.
 
 ---
 
-## Contributing
+# 🚀 Future Roadmap
 
-PRs and issues welcome. If you're working on LLM-based code analysis, developer tooling, or agentic systems — feel free to reach out.
+* Real GitHub Pull Request creation
+* AI Code Review Agent
+* VS Code Extension
+* Docker deployment
+* Multi-language repository support
+* Local repository analysis
+* Team collaboration
+* Enterprise repository analytics
 
 ---
 
-## License
+# 👥 Team
+**Priya Manna**|| 
+**Ashish Maurya**|| 
+**Adarsh Maurya**
 
-MIT
+---
+
+# 📄 License
+
+MIT License
+
+---
+
+## ⭐ If you like GitAtlas
+
+If this project helped you, consider giving it a ⭐ on GitHub.
