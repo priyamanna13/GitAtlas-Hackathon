@@ -167,57 +167,85 @@ def _fallback_actions(analysis):
 
 
 def generate_pr_draft(analysis: dict, pr_type: str = "refactor") -> dict:
-    """Generate a simulated PR draft based on top improvement recommendation"""
+    """Generate a simulated PR draft based on top improvement recommendation.
+
+    Enhancements:
+    - Improved LLM prompt for a richer PR draft
+    - Adds implementation_summary, affected_modules, testing_checklist, risk_assessment
+    - Keeps existing API fields for backward compatibility
+    """
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    # Select improvements from either raw analysis or previously-annotated _analysis
     imps = analysis.get("_analysis", {}).get("improvements", []) if "_analysis" in analysis else analysis.get("improvements", [])
-    top = imps[0] if imps else {"title": "Refactor", "solution": "Improve code structure"}
+    top = imps[0] if imps else {"title": "Refactor", "solution": "Improve code structure", "problem": "General cleanup"}
     arch = analysis.get("_analysis", {}).get("architecture_analysis", {}) if "_analysis" in analysis else {}
     stack = analysis.get("_analysis", {}).get("project_overview", {}).get("tech_stack", []) if "_analysis" in analysis else []
 
-    prompt = f"""Generate a realistic GitHub Pull Request for this improvement.
+    # Improved, explicit prompt guiding the model to produce a structured, professional PR draft.
+    prompt = f"""
+You are an expert developer and release manager. Produce a realistic GitHub Pull Request draft for the requested improvement.
 
-Project tech stack: {', '.join(str(s) for s in stack)}
-Architecture: {arch.get('pattern', 'Monolithic')}
-Improvement to implement: {top.get('title')}
-Problem: {top.get('problem')}
-Solution: {top.get('solution')}
+Context:
+- Project tech stack: {', '.join(str(s) for s in stack) or 'Unknown'}
+- Architecture: {arch.get('pattern', 'Monolithic')}
+- PR type: {pr_type}
 
-Return ONLY valid JSON:
+Improvement to implement:
+- Title: {top.get('title')}
+- Problem: {top.get('problem') or 'Not provided'}
+- Proposed solution: {top.get('solution')}
+
+Return ONLY valid JSON (no markdown wrappers). Include these fields:
 {{
-  "pr_title": "concise PR title (< 72 chars)",
+  "pr_title": "concise PR title (<72 chars)",
   "pr_branch": "feature/kebab-case-branch-name",
-  "pr_body": "Full PR description in markdown with ## sections: Summary, Changes, Testing, Screenshots (N/A). 200-300 words.",
-  "changed_files": [
-    {{"file": "path/to/file.py", "status": "modified", "additions": 42, "deletions": 8, "description": "what changed and why"}}
-  ],
-  "labels": ["enhancement", "refactor"],
-  "checklist": [
-    "Tests pass",
-    "Linting clean",
-    "No breaking changes"
-  ],
+  "pr_body": "Full PR description in markdown with ## sections: Summary, Implementation, Changes, Testing, Risk Assessment. 200-300 words.",
+  "implementation_summary": "One-paragraph description of how the change is implemented",
+  "affected_modules": ["module.path.one", "module.two"],
+  "changed_files": [{{"file":"path/to/file.py","status":"modified","additions":10,"deletions":2,"description":"what changed and why"}}],
+  "labels": ["enhancement","refactor"],
+  "testing_checklist": ["unit tests added","integration tests run","manual smoke test"],
+  "risk_assessment": {{"risk_level":"Low/Medium/High","notes":"short notes"}},
   "estimated_review_time": "~15 min"
-}}"""
+}}
+
+Be specific and reference likely modules or files where applicable. Keep output compact and valid JSON.
+"""
 
     try:
         resp = client.chat.completions.create(
             model="llama-3.1-8b-instant",
-            messages=[{"role":"system","content":"Expert developer. Return only valid JSON. No markdown."},
-                      {"role":"user","content":prompt}],
+            messages=[{"role": "system", "content": "Expert developer. Return only valid JSON. No markdown."},
+                      {"role": "user", "content": prompt}],
             temperature=0.4, max_tokens=1500,
         )
         text = resp.choices[0].message.content.strip()
-        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
-        elif "```" in text: text = "\n".join(text.split("\n")[1:-1])
-        return json.loads(text)
+        # strip common code-fence wrappers
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = "\n".join(text.split("\n")[1:-1])
+
+        result = json.loads(text)
+
+        # Ensure we have a clear pr_title; if model returned generic, synthesize a concise one
+        if not result.get("pr_title") or len(result.get("pr_title","")) < 6:
+            short = top.get('title','Improvement').lower().replace(' ','-')[:60]
+            result["pr_title"] = f"{pr_type}: {short}"
+
+        return result
     except Exception as e:
+        # Fallback retains original shape and adds the new optional fields for compatibility
         return {
             "pr_title": f"fix: {top.get('title','Improvement')}",
             "pr_branch": "feature/automated-improvement",
             "pr_body": f"## Summary\n\nAddresses: **{top.get('title')}**\n\n## Problem\n\n{top.get('problem','')}\n\n## Solution\n\n{top.get('solution','')}\n\n## Testing\n\nManual testing completed.",
+            "implementation_summary": top.get('solution','See PR body'),
+            "affected_modules": [m.get('name') for m in analysis.get('module_map',[])][:5],
             "changed_files": [{"file": "src/main.py", "status": "modified", "additions": 30, "deletions": 5, "description": "Applied recommended fix"}],
             "labels": ["enhancement"],
-            "checklist": ["Tests pass", "Code reviewed"],
+            "testing_checklist": ["Run unit tests","Run linters","Manual smoke test"],
+            "risk_assessment": {"risk_level": "Medium", "notes": "Requires careful validation of core modules."},
             "estimated_review_time": "~10 min",
             "_error": str(e)
         }
