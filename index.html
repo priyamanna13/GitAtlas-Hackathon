@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GitAtlas</title>
+<style>
+:root {
+  /* Default Dark Theme (#262624 background as requested) */
+  --bg-body: #262624;
+  --bg-nav: #262624;
+  --bg-sidebar: #262624;
+  --bg-card: #2f2f2d;
+  --bg-card-hover: #363634;
+  --bg-input: #323230;
+  --border-color: #3f3f3c;
+  --border-hover: #50504c;
+  
+  /* Brand Oranges */
+  --brand-main: #C15F3C;
+  --ui-orange: #FF6B35;
+  --accent-orange: #E67D22;
+  
+  --text-main: #ffffff;
+  --text-muted: #a1a19e;
+  --text-dark: #7a7a77;
+  
+  /* Agent Pipeline Colors (Dark) */
+  --av-per-bg: #1e3a5f; --av-per-fg: #4a7fd4; --bbl-per-bg: #2c3a4a;
+  --av-rea-bg: #2a1e3a; --av-rea-fg: #a78bfa; --bbl-rea-bg: #322a42;
+  --av-act-bg: #1a2e1e; --av-act-fg: #4ade80; --bbl-act-bg: #2a3a2e;
+
+  /* Apple-style smooth easing */
+  --ease-apple: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+}
+
+.light-theme {
+  /* Crisp Light Theme */
+  --bg-body: #f7f7f5;
+  --bg-nav: #f7f7f5;
+  --bg-sidebar: #f7f7f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f0f0ee;
+  --bg-input: #eaeaeb;
+  --border-color: #d6d6d4;
+  --border-hover: #bcbcba;
+  
+  --text-main: #1a1a19;
+  --text-muted: #5e5e5c;
+  --text-dark: #8c8c8a;
+
+  /* Agent Pipeline Colors (Light) */
+  --av-per-bg: #e0f2fe; --av-per-fg: #0284c7; --bbl-per-bg: #f0f9ff;
+  --av-rea-bg: #f3e8ff; --av-rea-fg: #9333ea; --bbl-rea-bg: #faf5ff;
+  --av-act-bg: #dcfce7; --av-act-fg: #16a34a; --bbl-act-bg: #f0fdf4;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+html,body {
+  height:100%; overflow:hidden;
+  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background:var(--bg-body); color:var(--text-main);
+  transition: background-color 0.4s var(--ease-apple), color 0.4s var(--ease-apple);
+}
+
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-color);border-radius:4px;}
+
+/* ── ANIMATIONS (APPLE STYLE) ── */
+@keyframes appleSlideUp {
+  0% { opacity: 0; transform: translateY(30px) scale(0.96); filter: blur(3px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); }
+}
+@keyframes applePopIn {
+  0% { opacity: 0; transform: translateY(20px) scale(0.92); filter: blur(2px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); }
+}
+@keyframes fadeIn {
+  from{opacity:0;}to{opacity:1;}
+}
+
+.page.active { display: flex; animation: appleSlideUp 0.6s var(--ease-apple) forwards; }
+.stagger-1 { opacity: 0; animation: appleSlideUp 0.7s var(--ease-apple) 0.05s forwards; }
+.stagger-2 { opacity: 0; animation: appleSlideUp 0.7s var(--ease-apple) 0.12s forwards; }
+.stagger-3 { opacity: 0; animation: appleSlideUp 0.7s var(--ease-apple) 0.19s forwards; }
+.stagger-4 { opacity: 0; animation: appleSlideUp 0.7s var(--ease-apple) 0.26s forwards; }
+.msg-pop { opacity: 0; animation: applePopIn 0.6s var(--ease-spring) forwards; transform-origin: left center; }
+.msg-pop-r { opacity: 0; animation: applePopIn 0.6s var(--ease-spring) forwards; transform-origin: right center; }
+
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;height:100vh;}
+
+/* ── NAV ── */
+#topnav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;border-bottom:1px solid var(--border-color);flex-shrink:0;
+  background:var(--bg-nav);
+  transition: background-color 0.4s var(--ease-apple), border-color 0.4s var(--ease-apple);
+}
+.nav-left{display:flex;align-items:center;gap:16px;}
+.logo-wrapper{width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.nav-brand{color:var(--text-main);font-size:18px;font-weight:600;}
+#nav-reponame{color:var(--text-muted);font-size:16px;display:none;font-weight:500;}
+.nav-right{display:flex;align-items:center;gap:12px;}
+
+.action-btn {
+  background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);
+  padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 500;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.3s var(--ease-apple);
+}
+.action-btn:hover {
+  background: var(--bg-card); color: var(--text-main); border-color: var(--border-hover); transform: translateY(-1px);
+}
+.action-btn svg { width: 16px; height: 16px; }
+.theme-toggle { padding: 8px; } /* Square padding for icon-only button */
+
+.sdot{width:8px;height:8px;border-radius:50%;background:#4ade80;}
+.nav-model{color:var(--text-muted);font-size:14px;}
+
+/* ── BODY ROW ── */
+#body-row{display:flex;flex:1;min-height:0;}
+
+/* ── SIDEBAR ── */
+#sidebar{
+  width:76px;border-right:1px solid var(--border-color);
+  display:flex;flex-direction:column;align-items:center;
+  padding:16px 0;flex-shrink:0;background:var(--bg-sidebar);
+  display:none; z-index: 100; /* Solves hover tooltip clipping issue */
+  transition: background-color 0.4s var(--ease-apple), border-color 0.4s var(--ease-apple);
+}
+#sidebar.visible{display:flex; animation: fadeIn 0.5s var(--ease-apple) forwards;}
+.sid-btn{
+  width:48px;height:48px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;margin-bottom:8px;
+  border-left:3px solid transparent;
+  transition: all 0.3s var(--ease-apple); position:relative;user-select:none;
+  color:var(--text-dark);
+}
+.sid-btn svg{width:24px;height:24px;transition:all 0.3s var(--ease-apple);}
+.sid-btn:hover{background:var(--bg-input);color:var(--text-muted);}
+.sid-btn:hover svg{color:var(--text-muted);stroke:var(--text-muted);}
+.sid-btn.active{background:var(--bg-card);color:var(--ui-orange);border-left-color:var(--ui-orange);}
+.sid-btn.active svg{stroke:var(--ui-orange) !important;}
+.sid-tip{
+  position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);
+  background:var(--text-main);border:1px solid var(--border-color);border-radius:8px;
+  padding:8px 14px;font-size:13px;color:var(--bg-body);white-space:nowrap;
+  pointer-events:none;opacity:0;transition:opacity 0.2s var(--ease-apple);z-index:999;
+  font-weight:600; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.sid-btn:hover .sid-tip{opacity:1;}
+.sid-bottom{margin-top:auto;}
+.user-av{width:40px;height:40px;background:var(--brand-main);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#fff;transition:transform .3s var(--ease-apple);cursor:pointer;}
+.user-av:hover{transform:scale(1.08);}
+
+/* ── MAIN AREA ── */
+#main{flex:1;min-width:0;overflow:hidden;position:relative;}
+
+/* ── PAGES ── */
+.page{position:absolute;inset:0;display:none;flex-direction:column;overflow-y:auto;opacity:0;transform:translateY(8px);}
+
+/* ══════════════════════════════════════
+   LANDING PAGE
+══════════════════════════════════════ */
+#page-landing{
+  align-items:center;justify-content:center;gap:24px;padding:0 32px;
+}
+.s1-badge{display:flex;align-items:center;gap:8px;background:var(--bg-input);border:1px solid var(--border-color);border-radius:99px;padding:8px 16px;transition: border-color 0.3s var(--ease-apple), background-color 0.4s;}
+.s1-title1{font-size:48px;font-weight:700;color:var(--text-main);text-align:center;line-height:1.15; transition: color 0.4s;}
+.s1-title2{font-size:48px;font-weight:700;color:var(--ui-orange);text-align:center;line-height:1.15;}
+.s1-sub{font-size:18px;color:var(--text-muted);text-align:center;max-width:640px;line-height:1.6; transition: color 0.4s;}
+.s1-ex-label{font-size:14px;color:var(--text-dark);text-align:center;margin-bottom:12px;font-weight:500;}
+.s1-ex-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.s1-pill{font-size:14px;padding:8px 16px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-muted);cursor:pointer;transition:all 0.3s var(--ease-apple);font-weight:500;}
+.s1-pill:hover{background:var(--bg-card-hover);border-color:var(--border-hover);color:var(--text-main);transform:translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05);}
+.s1-input-row{display:flex;align-items:center;background:var(--bg-input);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;gap:12px;width:100%;max-width:720px;transition:all .3s var(--ease-apple);}
+.s1-input-row:focus-within{border-color:var(--ui-orange); box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2); background: var(--bg-card);}
+.s1-input-row input{flex:1;background:transparent;border:none;outline:none;font-size:16px;color:var(--text-main);}
+.s1-input-row input::placeholder{color:var(--text-dark);}
+.go-btn{width:44px;height:44px;background:var(--ui-orange);border:none;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .3s var(--ease-apple); color: #fff;}
+.go-btn svg{width:20px;height:20px; stroke: currentColor;}
+.go-btn:hover{background:var(--brand-main);transform:scale(1.05); box-shadow: 0 6px 16px rgba(193, 95, 60, 0.3);}
+.go-btn:disabled{background:var(--border-hover);cursor:not-allowed;transform:none;}
+
+/* ══════════════════════════════════════
+   PIPELINE PAGE
+══════════════════════════════════════ */
+#page-pipeline{align-items:center;padding:32px 40px;gap:0;}
+.analyzing-bar{background:var(--bg-input);border:1px solid var(--border-color);border-radius:99px;padding:8px 24px;font-size:14px;color:var(--text-muted);margin-bottom:20px;flex-shrink:0;}
+.pipe-title{font-size:24px;font-weight:700;color:var(--text-main);margin-bottom:4px;flex-shrink:0;}
+.pipe-sub{font-size:16px;color:var(--text-dark);margin-bottom:24px;flex-shrink:0;}
+#live-msgs{width:100%;max-width:760px;display:flex;flex-direction:column;gap:16px;}
+.bubble-left{display:flex;align-items:flex-start;gap:12px;width:100%;}
+.bubble-right{display:flex;align-items:flex-start;gap:12px;width:100%;justify-content:flex-end;}
+.av{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0; transition: background-color 0.4s, color 0.4s;}
+.av-per{background:var(--av-per-bg);color:var(--av-per-fg);}
+.av-rea{background:var(--av-rea-bg);color:var(--av-rea-fg);}
+.av-act{background:var(--av-act-bg);color:var(--av-act-fg);}
+.msg-wrap{display:flex;flex-direction:column;gap:6px;max-width:65%;}
+.msg-wrap-r{display:flex;flex-direction:column;gap:6px;max-width:65%;align-items:flex-end;}
+.msg-meta{font-size:13px;color:var(--text-dark);display:flex;gap:8px;align-items:center; transition: color 0.4s;}
+.msg-meta strong{color:var(--text-muted);font-weight:600;font-size:14px;}
+.bbl{padding:14px 18px;border-radius:14px;font-size:15px;color:var(--text-main);line-height:1.6; transition: background-color 0.4s, color 0.4s;}
+.bbl-per{background:var(--bbl-per-bg); border-top-left-radius: 4px;}
+.bbl-rea{background:var(--bbl-rea-bg); border-top-right-radius: 4px;}
+.bbl-act{background:var(--bbl-act-bg); border-top-left-radius: 4px;}
+#typing-row{width:100%;max-width:760px;margin-top:16px;display:none;}
+.typing{display:flex;align-items:center;gap:6px;padding:14px 18px;background:var(--bg-input);border-radius:14px; border-top-left-radius: 4px; width:fit-content;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text-dark);animation:blink 1.4s infinite var(--ease-apple);}
+.dot:nth-child(2){animation-delay:.2s;}.dot:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,80%,100%{opacity:.3; transform: scale(0.8);}40%{opacity:1; transform: scale(1.1);}}
+
+/* ══════════════════════════════════════
+   SHARED INNER LAYOUT
+══════════════════════════════════════ */
+.inner{flex:1;display:flex;flex-direction:column;padding:24px 32px;gap:16px;overflow-y:auto;}
+.row{display:flex;gap:16px;flex-shrink:0;}
+.card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:24px;transition:all 0.3s var(--ease-apple);}
+.card:hover{border-color:var(--border-hover); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.08);}
+.lbl{font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+.badge{display:inline-block;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600;transition:all .15s ease;}
+.tag{display:inline-block;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:500;margin-right:8px;margin-bottom:8px;transition:transform 0.2s var(--ease-apple);}
+.tag:hover{transform:translateY(-2px);}
+
+/* overview */
+.arch-card{background:var(--ui-orange)!important;border-color:var(--ui-orange)!important;}
+.arch-card .lbl{color:#ffe4d6;}
+.conf-bar{height:6px;background:var(--brand-main);border-radius:3px;margin-bottom:8px; overflow: hidden;}
+.conf-fill{height:100%;background:#fff;opacity:.9;border-radius:3px; transition: width 1.5s var(--ease-apple);}
+
+/* modules */
+.mod-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.mod-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:all 0.3s var(--ease-apple);}
+.mod-card:hover{border-color:var(--border-hover);transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.12);}
+.mod-card.critical{background:var(--ui-orange);border-color:var(--ui-orange);}
+.mod-card.critical:hover{background:var(--brand-main);transform:translateY(-4px);box-shadow:0 12px 32px rgba(193, 95, 60, 0.25);}
+.filepath{background:var(--bg-body);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text-muted);font-family:monospace;display:inline-block;transition: background-color 0.4s;}
+.filepath-light{background:var(--brand-main);border-radius:8px;padding:8px 12px;font-size:13px;color:#ffe4d6;font-family:monospace;display:inline-block;}
+
+/* module modal */
+#mod-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter: blur(8px); display:none;align-items:center;justify-content:center;padding:20px;z-index:500;}
+#mod-overlay.open{display:flex;animation:fadeIn .3s var(--ease-apple);}
+.modal-box{background:var(--bg-body);border:1px solid var(--border-color);border-radius:20px;width:100%;max-width:720px;overflow:hidden;animation:appleSlideUp .5s var(--ease-apple); box-shadow: 0 24px 64px rgba(0,0,0,0.2);}
+.modal-hdr{background:var(--ui-orange);padding:24px 32px;display:flex;align-items:flex-start;justify-content:space-between;}
+.modal-close{width:32px;height:32px;background:var(--brand-main);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;flex-shrink:0;transition:all .2s var(--ease-apple);}
+.modal-close:hover{background:#a34f32; transform: scale(1.05);}
+.modal-body{padding:32px;display:flex;flex-direction:column;gap:24px;}
+.stat-sm{background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:16px 20px;text-align:center;flex:1;transition:all 0.3s var(--ease-apple);}
+.stat-sm:hover{border-color:var(--border-hover); transform: translateY(-2px);}
+.ftag{background:var(--bg-input);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--text-muted);font-family:monospace;display:inline-block;margin-right:8px;transition:all .2s var(--ease-apple);margin-bottom:6px;}
+.ftag:hover{background:var(--bg-card-hover);color:var(--text-main);}
+.navbtn{background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600; color:var(--text-muted);cursor:pointer;transition:all .3s var(--ease-apple);}
+.navbtn:hover{background:var(--bg-card-hover);color:var(--text-main); border-color:var(--border-hover);}
+.navbtn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* improvements */
+.imp-row{display:flex;align-items:center;gap:16px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:20px 24px;cursor:pointer;transition:all .3s var(--ease-apple);margin-bottom:0;}
+.imp-row:hover{border-color:var(--border-hover);background:var(--bg-card-hover); transform: translateX(2px);}
+.imp-row.open{border-color:var(--ui-orange);background:var(--bg-input);border-bottom-left-radius:0;border-bottom-right-radius:0; transform: none;}
+.imp-body{background:var(--bg-input);border:1px solid var(--ui-orange);border-top:none;border-bottom-left-radius:14px;border-bottom-right-radius:14px;padding:20px 24px 28px 44px;display:none;margin-bottom:12px;animation:appleSlideUp .4s var(--ease-apple);}
+.imp-body.show{display:block;}
+.imp-wrap{margin-bottom:12px;}
+.imp-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;transition:transform .4s var(--ease-spring);}
+.imp-row:hover .imp-dot{transform:scale(1.4);}
+
+/* modernize */
+.mod-side{flex:1;background:var(--bg-card);border-radius:16px;padding:28px;transition:background 0.4s, border-color 0.4s;border:1px solid var(--border-color);}
+.mrow{display:flex;align-items:center;gap:12px;border-radius:10px;padding:12px 16px;margin-bottom:8px;font-size:14px;transition:transform .3s var(--ease-apple);}
+.mrow:hover{transform:translateX(4px);}
+.roadmap-item{display:flex;align-items:center;background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:16px 24px;gap:16px;transition:all .3s var(--ease-apple);}
+.roadmap-item:hover{border-color:var(--border-hover);transform:translateX(4px); box-shadow: 0 4px 16px rgba(0,0,0,0.05);}
+.rnum{width:36px;height:36px;background:var(--ui-orange);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;}
+.cli-line{display:flex;align-items:center;gap:10px;font-size:14px;color:#4ade80;font-family:monospace;padding:8px 0;transition:opacity .2s ease;}
+.cli-line:hover{opacity:.8;}
+
+/* compare */
+.cmp-inp{flex:1;background:var(--bg-input);border:1px solid var(--border-color);border-radius:12px;padding:14px 20px;font-size:15px;color:var(--text-main);outline:none;transition:all .3s var(--ease-apple);}
+.cmp-inp:focus{border-color:var(--ui-orange); box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);}
+.cmp-inp.active{border-color:var(--ui-orange);color:var(--ui-orange);}
+.cmp-btn{background:var(--ui-orange);color:#fff;border:none;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:600;cursor:pointer;transition:all .3s var(--ease-apple);}
+.cmp-btn:hover{background:var(--brand-main);transform:translateY(-2px);box-shadow: 0 6px 16px rgba(193, 95, 60, 0.25);}
+.cmp-table{background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;overflow:hidden;flex:1; transition: background 0.4s, border-color 0.4s;}
+.cmp-table table{width:100%;border-collapse:collapse;font-size:15px;}
+.cmp-table thead tr{background:var(--bg-input); transition: background 0.4s;}
+.cmp-table thead td{padding:18px 24px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);}
+.cmp-table thead td.org{color:var(--ui-orange);}
+.cmp-table tbody tr{border-bottom:1px solid var(--border-color);transition:background .3s var(--ease-apple);}
+.cmp-table tbody tr:hover{background:var(--bg-card-hover);}
+.cmp-table tbody tr:last-child{border-bottom:none;}
+.cmp-table tbody td{padding:18px 24px;color:var(--text-main);}
+.cmp-table tbody td.val{color:var(--ui-orange);font-weight:600;}
+.cmp-table tbody td.mut{color:var(--text-muted);}
+
+/* docs */
+.doc-area{flex:1;background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:28px 36px;overflow-y:auto;font-family:monospace;white-space:pre-wrap;font-size:14px;color:var(--text-muted);line-height:1.7; transition: background 0.4s, border-color 0.4s;}
+.doc-gen{background:var(--ui-orange);border:none;border-radius:10px;padding:12px 24px;font-size:14px;color:#fff;font-weight:600;cursor:pointer;transition:all .3s var(--ease-apple);}
+.doc-gen:hover{background:var(--brand-main);transform:translateY(-2px);box-shadow: 0 6px 16px rgba(193, 95, 60, 0.25);}
+.doc-dl{background:var(--bg-input);border:1px solid var(--border-color);border-radius:10px;padding:12px 24px;font-size:14px;font-weight:600; color:var(--text-muted);cursor:pointer;transition:all .3s var(--ease-apple);}
+.doc-dl:hover{background:var(--bg-card-hover);border-color:var(--border-hover);color:var(--text-main); transform:translateY(-2px);}
+
+/* chat */
+.chat-pill{font-size:14px;padding:10px 18px;border-radius:99px;border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all .3s var(--ease-apple);}
+.chat-pill:hover{background:var(--bg-card-hover);border-color:var(--border-hover);color:var(--text-main);transform:translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05);}
+.ai-av{width:40px;height:40px;background:var(--ui-orange);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.ai-bbl{background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px; border-top-left-radius:4px; padding:18px 24px;max-width:65%;animation:applePopIn .5s var(--ease-spring); transform-origin: left center;}
+.usr-bbl{background:var(--ui-orange);border-radius:16px; border-top-right-radius:4px; padding:18px 24px;max-width:60%;margin-left:auto;animation:applePopIn .5s var(--ease-spring); transform-origin: right center;}
+.model-tag{display:inline-block;background:var(--bg-input);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--text-dark);margin-top:8px;}
+.chat-input-row{display:flex;align-items:center;background:var(--bg-input);border:1px solid var(--border-color);border-radius:14px;padding:12px 16px;gap:12px;flex-shrink:0;transition:all .3s var(--ease-apple);}
+.chat-input-row:focus-within{border-color:var(--ui-orange); box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2); background:var(--bg-card);}
+.chat-input-row input{flex:1;background:transparent;border:none;outline:none;font-size:16px;color:var(--text-main);}
+.chat-input-row input::placeholder{color:var(--text-dark);}
+.chat-send{width:44px;height:44px;background:var(--ui-orange);border:none;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .3s var(--ease-apple);}
+.chat-send svg{width: 20px; height: 20px; stroke: #fff;}
+.chat-send:hover{background:var(--brand-main);transform:scale(1.08);}
+
+/* graph */
+.graph-area{flex:1;background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;overflow:hidden;min-height:300px; transition: background 0.4s, border-color 0.4s;}
+
+/* toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid #e85555;border-radius:14px;padding:18px 28px;font-size:15px;font-weight:500;color:#e85555;z-index:9999;max-width:440px; box-shadow: 0 12px 32px rgba(0,0,0,0.15); animation: appleSlideUp .5s var(--ease-spring) forwards;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP NAV -->
+  <div id="topnav">
+    <div class="nav-left">
+      <div class="logo-wrapper">
+        <svg width="38" height="38" viewBox="0 0 100 100" fill="none">
+          <!-- Main rings dynamically adopt the text color of the current theme -->
+          <circle cx="50" cy="50" r="46" stroke="var(--text-main)" stroke-width="1.5"/>
+          <ellipse cx="50" cy="35" rx="42" ry="12" stroke="var(--text-dark)" stroke-width="1"/>
+          <ellipse cx="50" cy="65" rx="42" ry="12" stroke="var(--text-dark)" stroke-width="1"/>
+          <ellipse cx="50" cy="50" rx="20" ry="46" stroke="var(--text-dark)" stroke-width="1"/>
+          <line x1="50" y1="18" x2="50" y2="82" stroke="var(--text-main)" stroke-width="2.5"/>
+          <path d="M 28 50 C 40 70, 60 70, 72 60" stroke="var(--text-main)" stroke-width="1.5"/>
+          <path d="M 28 50 C 40 30, 60 30, 50 35" stroke="var(--text-main)" stroke-width="1.5"/>
+          <circle cx="50" cy="18" r="4" fill="var(--text-main)"/>
+          <!-- Use the dynamic nav background to "cut out" the background behind intersections -->
+          <circle cx="50" cy="35" r="3.5" fill="var(--bg-nav)" stroke="var(--text-main)" stroke-width="2" style="transition: fill 0.4s var(--ease-apple);"/>
+          <circle cx="28" cy="50" r="3.5" fill="var(--text-main)"/>
+          <circle cx="50" cy="50" r="3.5" fill="var(--bg-nav)" stroke="var(--text-main)" stroke-width="2" style="transition: fill 0.4s var(--ease-apple);"/>
+          <circle cx="72" cy="60" r="3.5" fill="var(--text-main)"/>
+          <circle cx="50" cy="65" r="3.5" fill="var(--bg-nav)" stroke="var(--text-main)" stroke-width="2" style="transition: fill 0.4s var(--ease-apple);"/>
+          <circle cx="50" cy="82" r="4" fill="var(--text-main)"/>
+        </svg>
+      </div>
+      <span class="nav-brand">GitAtlas</span>
+      <span id="nav-reponame"></span>
+    </div>
+    <div class="nav-right">
+      <!-- Theme Toggle -->
+      <button id="btn-theme" class="action-btn theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+
+      <!-- Reset App -->
+      <button id="btn-reset" class="action-btn" onclick="resetApp()" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        New Analysis
+      </button>
+      <div class="sdot"></div>
+      <span class="nav-model">Groq · Llama 3.3 70B</span>
+    </div>
+  </div>
+
+  <!-- BODY ROW -->
+  <div id="body-row">
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <div class="sid-btn active" data-tab="ovr">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="sid-tip">Overview</span>
+      </div>
+      <div class="sid-btn" data-tab="agt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>
+        <span class="sid-tip">Agent Pipeline</span>
+      </div>
+      <div class="sid-btn" data-tab="mod">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <span class="sid-tip">Modules</span>
+      </div>
+      <div class="sid-btn" data-tab="grp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+        <span class="sid-tip">Dependency Graph</span>
+      </div>
+      <div class="sid-btn" data-tab="imp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span class="sid-tip">Improvements</span>
+      </div>
+      <div class="sid-btn" data-tab="mdr">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        <span class="sid-tip">Modernize</span>
+      </div>
+      <div class="sid-btn" data-tab="cmp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="sid-tip">Compare Repos</span>
+      </div>
+      <div class="sid-btn" data-tab="doc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span class="sid-tip">Auto Docs</span>
+      </div>
+      <div class="sid-btn" data-tab="sec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span class="sid-tip">Security</span>
+      </div>
+      <div class="sid-btn" data-tab="onb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="sid-tip">Onboarding</span>
+      </div>
+      <div class="sid-btn" data-tab="pr">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
+        <span class="sid-tip">PR Draft</span>
+      </div>
+      <div class="sid-btn" data-tab="cht">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="sid-tip">AI Chat</span>
+      </div>
+      <div class="sid-bottom"><div class="user-av">A</div></div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="main">
+
+      <!-- PAGE: LANDING -->
+      <div class="page active" id="page-landing">
+        <div class="s1-badge">
+          <div class="sdot"></div>
+          <span style="font-size:15px;color:var(--text-muted); font-weight: 500;">3 Groq agents · Llama 3.1 8B + Llama 3.3 70B</span>
+        </div>
+        <div class="s1-title1">Understand any</div>
+        <div class="s1-title2">codebase instantly.</div>
+        <p class="s1-sub">Drop a GitHub URL. Watch three AI agents read the repo, map its architecture, surface risks, and generate a complete modernization plan.</p>
+        <div>
+          <p class="s1-ex-label">Try an example</p>
+          <div class="s1-ex-row">
+            <button class="s1-pill" onclick="setUrl('https://github.com/pallets/flask')">pallets/flask</button>
+            <button class="s1-pill" onclick="setUrl('https://github.com/tiangolo/fastapi')">tiangolo/fastapi</button>
+            <button class="s1-pill" onclick="setUrl('https://github.com/django/django')">django/django</button>
+            <button class="s1-pill" onclick="setUrl('https://github.com/expressjs/express')">expressjs/express</button>
+          </div>
+        </div>
+        <div class="s1-input-row">
+          <input id="url-input" type="text" placeholder="https://github.com/owner/repository" onkeydown="if(event.key==='Enter')analyze()"/>
+          <button class="go-btn" id="go-btn" onclick="analyze()">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- PAGE: PIPELINE -->
+      <div class="page" id="page-pipeline">
+        <div class="analyzing-bar stagger-1">Analyzing repository details...</div>
+        <div class="pipe-title stagger-1">Live Agent Pipeline</div>
+        <div class="pipe-sub stagger-1">Agents talking to each other in real time</div>
+        <div id="live-msgs"></div>
+        <div id="typing-row">
+          <div class="bubble-left">
+            <div class="av av-per">PER</div>
+            <div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: OVERVIEW -->
+      <div class="page" id="page-ovr"></div>
+
+      <!-- PAGE: AGENT ROOM -->
+      <div class="page" id="page-agt"></div>
+
+      <!-- PAGE: MODULES -->
+      <div class="page" id="page-mod"></div>
+
+      <!-- PAGE: GRAPH -->
+      <div class="page" id="page-grp"></div>
+
+      <!-- PAGE: IMPROVEMENTS -->
+      <div class="page" id="page-imp"></div>
+
+      <!-- PAGE: MODERNIZE -->
+      <div class="page" id="page-mdr"></div>
+
+      <!-- PAGE: COMPARE -->
+      <div class="page" id="page-cmp"></div>
+
+      <!-- PAGE: DOCS -->
+      <div class="page" id="page-doc"></div>
+
+      <!-- PAGE: CHAT -->
+      <div class="page" id="page-cht"></div>
+      <div class="page" id="page-sec"></div>
+      <div class="page" id="page-onb"></div>
+      <div class="page" id="page-pr"></div>
+
+    </div><!-- /main -->
+  </div><!-- /body-row -->
+</div><!-- /app -->
+
+<!-- MODULE MODAL -->
+<div id="mod-overlay">
+  <div class="modal-box" id="mod-modal"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const G = {
+  data: null,
+  tab: 'ovr',
+  agentMsgs: [],
+  chatHistory: [],
+  compareData: null,
+  docsContent: null,
+  expandedMod: null,
+};
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function setUrl(u){ document.getElementById('url-input').value = u; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+const CC = {Critical:'#E85555',High:'var(--ui-orange)',Medium:'var(--accent-orange)',Low:'#4ADE80'};
+// Specific backgrounds just for the badges to ensure high contrast
+const CB_DARK = {Critical:'#3a1a1a',High:'#3a221a',Medium:'#3a301a',Low:'#1a3a22'};
+const CB_LIGHT = {Critical:'#fee2e2',High:'#ffedd5',Medium:'#fef3c7',Low:'#dcfce7'};
+
+function cbadge(crit){
+  const isLight = document.body.classList.contains('light-theme');
+  const c=CC[crit]||'var(--text-muted)';
+  const bg=isLight ? (CB_LIGHT[crit]||'var(--bg-input)') : (CB_DARK[crit]||'var(--bg-input)');
+  return `<span class="badge" style="background:${bg};color:${c};border:1px solid ${c}44;">${esc(crit)}</span>`;
+}
+function techColor(t){
+  const m={python:'#4ADE80',javascript:'var(--accent-orange)',typescript:'#4A9FD4',go:'#4ADE80',rust:'#E85555',flask:'var(--text-muted)',django:'#4ADE80',fastapi:'#4ADE80',react:'#4A9FD4',werkzeug:'var(--text-muted)',jinja2:'#A78BFA',click:'var(--accent-orange)',express:'#4ADE80',vue:'#4ADE80',rails:'#E85555',ruby:'#E85555',java:'var(--accent-orange)',kotlin:'#A78BFA',swift:'var(--ui-orange)',php:'#A78BFA'};
+  return m[t.toLowerCase()]||'var(--text-muted)';
+}
+function techTag(t){
+  const c=techColor(t);
+  return `<span class="tag" style="background:${c}20;color:${c};border:1px solid ${c}30;">${esc(t)}</span>`;
+}
+function gaugeHTML(score,level){
+  score=Math.max(0,Math.min(100,parseInt(score)||0));
+  const C={Low:'#4ADE80',Medium:'var(--accent-orange)',High:'var(--ui-orange)','Very High':'#E85555'};
+  const c=C[level]||'var(--text-muted)';
+  const dash=((score/100)*220).toFixed(1);
+  return `<svg width="96" height="96" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="35" fill="none" stroke="var(--border-color)" stroke-width="8"/>
+    <circle cx="50" cy="50" r="35" fill="none" stroke="${c}" stroke-width="8"
+      stroke-dasharray="${dash} 220" stroke-dashoffset="55" stroke-linecap="round" 
+      style="transition: stroke-dasharray 1.5s var(--ease-apple);"/>
+    <text x="50" y="47" text-anchor="middle" font-size="24" font-weight="700" fill="var(--text-main)">${score}</text>
+    <text x="50" y="66" text-anchor="middle" font-size="12" fill="${c}">${level.toUpperCase()}</text>
+  </svg>`;
+}
+function toast(msg){
+  const t=document.createElement('div');
+  t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),5000);
+}
+
+// ═══════════════════════════════════════
+// THEMING
+// ═══════════════════════════════════════
+function toggleTheme() {
+  document.body.classList.toggle('light-theme');
+  const isLight = document.body.classList.contains('light-theme');
+  localStorage.setItem('gitatlas-theme', isLight ? 'light' : 'dark');
+  document.querySelector('.sun-icon').style.display = isLight ? 'none' : 'block';
+  document.querySelector('.moon-icon').style.display = isLight ? 'block' : 'none';
+  
+  // Re-render currently active tab to update dynamic styling (like badge backgrounds or specific SVGs)
+  if(G.data && G.tab) {
+    const fn = {ovr:renderOverview,agt:renderAgentRoom,mod:renderModules,grp:renderGraph,imp:renderImprovements,mdr:renderModernize,cmp:renderCompare,doc:renderDocs,cht:renderChat,sec:renderSecurity,onb:renderOnboarding,pr:renderPR};
+    if(fn[G.tab]) fn[G.tab]();
+  }
+}
+
+// Init theme on load
+if(localStorage.getItem('gitatlas-theme') === 'light') {
+  document.body.classList.add('light-theme');
+  document.querySelector('.sun-icon').style.display = 'none';
+  document.querySelector('.moon-icon').style.display = 'block';
+}
+
+// ═══════════════════════════════════════
+// NEW ANALYSIS / RESET
+// ═══════════════════════════════════════
+function resetApp() {
+  G.data = null;
+  G.agentMsgs = [];
+  G.chatHistory = [];
+  G.compareData = null;
+  G.docsContent = null;
+  G.prData = null;
+  G.useCopilot = false;
+  
+  document.getElementById('nav-reponame').style.display = 'none';
+  document.getElementById('sidebar').classList.remove('visible');
+  document.getElementById('btn-reset').style.display = 'none';
+  document.getElementById('url-input').value = '';
+  document.getElementById('live-msgs').innerHTML = '';
+  
+  showTab('landing');
+}
+
+// ═══════════════════════════════════════
+// PAGE SWITCHING
+// ═══════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById(id);
+  if(pg) {
+    // Re-trigger the slide up animation by removing and re-adding class
+    pg.classList.remove('active');
+    void pg.offsetWidth; 
+    pg.classList.add('active');
+  }
+}
+
+// ═══════════════════════════════════════
+// SIDEBAR TAB SWITCHING
+// ═══════════════════════════════════════
+document.getElementById('sidebar').addEventListener('click', function(e){
+  const btn = e.target.closest('.sid-btn');
+  if(!btn || !btn.dataset.tab) return;
+  showTab(btn.dataset.tab);
+});
+
+function showTab(tab){
+  G.tab = tab;
+  document.querySelectorAll('.sid-btn').forEach(el=>{
+    el.classList.toggle('active', el.dataset.tab===tab);
+  });
+  showPage('page-'+tab);
+  const fn = {ovr:renderOverview,agt:renderAgentRoom,mod:renderModules,grp:renderGraph,imp:renderImprovements,mdr:renderModernize,cmp:renderCompare,doc:renderDocs,cht:renderChat,sec:renderSecurity,onb:renderOnboarding,pr:renderPR};
+  if(fn[tab]) fn[tab]();
+}
+
+// ═══════════════════════════════════════
+// ANALYZE
+// ═══════════════════════════════════════
+function analyze(){
+  const url = document.getElementById('url-input').value.trim();
+  if(!url){ toast('Enter a GitHub URL'); return; }
+  if(!url.includes('github.com')){ toast('Must be a GitHub URL'); return; }
+
+  document.getElementById('go-btn').disabled = true;
+  document.getElementById('live-msgs').innerHTML = '';
+  document.getElementById('typing-row').style.display = 'flex'; 
+  G.agentMsgs = [];
+
+  showPage('page-pipeline');
+
+  const src = new EventSource(`/api/analyze?url=${encodeURIComponent(url)}`);
+
+  src.addEventListener('agent_msg', e=>{
+    const d = JSON.parse(e.data);
+    G.agentMsgs.push(d);
+    appendLiveMsg(d);
+    const pg = document.getElementById('page-pipeline');
+    if(pg) pg.scrollTo({ top: pg.scrollHeight, behavior: 'smooth' });
+  });
+
+  src.addEventListener('done', e=>{
+    src.close();
+    document.getElementById('typing-row').style.display = 'none';
+    const d = JSON.parse(e.data);
+    G.data = d;
+
+    const name = d.raw.metadata.full_name || url.replace('https://github.com/','');
+    const rn = document.getElementById('nav-reponame');
+    rn.textContent = '· ' + name;
+    rn.style.display = 'inline';
+
+    document.getElementById('sidebar').classList.add('visible');
+    document.getElementById('btn-reset').style.display = 'flex';
+    document.getElementById('go-btn').disabled = false;
+
+    // Triggers the "boom" stagger load of the overview page
+    showTab('ovr');
+  });
+
+  src.addEventListener('error', e=>{
+    src.close();
+    document.getElementById('typing-row').style.display = 'none';
+    document.getElementById('go-btn').disabled = false;
+    let msg = 'Analysis failed';
+    try{ msg = JSON.parse(e.data).message||msg; }catch(_){}
+    showPage('page-landing');
+    toast(msg);
+  });
+}
+
+function appendLiveMsg(msg){
+  const box = document.getElementById('live-msgs');
+  const avC = {Perception:'av-per',Reasoning:'av-rea',Action:'av-act'};
+  const bbC = {Perception:'bbl-per',Reasoning:'bbl-rea',Action:'bbl-act'};
+  const abC = {Perception:'PER',Reasoning:'REA',Action:'ACT'};
+  const av = avC[msg.agent]||'av-per';
+  const bb = bbC[msg.agent]||'bbl-per';
+  const ab = abC[msg.agent]||msg.abbr||'?';
+  const isR = msg.agent==='Reasoning';
+  
+  // Notice msg-pop and msg-pop-r classes which trigger the Apple pop-in
+  const html = isR
+    ? `<div class="bubble-right msg-pop-r">
+        <div class="msg-wrap-r">
+          <div class="msg-meta" style="justify-content:flex-end;"><strong>${esc(msg.agent)}</strong></div>
+          <div class="bbl ${bb}">${msg.text}</div>
+        </div>
+        <div class="av ${av}">${ab}</div>
+      </div>`
+    : `<div class="bubble-left msg-pop">
+        <div class="av ${av}">${ab}</div>
+        <div class="msg-wrap">
+          <div class="msg-meta"><strong>${esc(msg.agent)}</strong> <span style="color:var(--text-dark);">${esc(msg.model||'')}</span></div>
+          <div class="bbl ${bb}">${msg.text}</div>
+        </div>
+      </div>`;
+  box.insertAdjacentHTML('beforeend', html);
+}
+
+// ═══════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════
+function renderOverview(){
+  if(!G.data) return;
+  const {raw,analysis,action} = G.data;
+  const meta = raw.metadata||{};
+  const arch = analysis.architecture_analysis||{};
+  const comp = analysis.complexity_score||{};
+  const ov   = analysis.project_overview||{};
+  const tech = (ov.tech_stack||[]).slice(0,8);
+  const mods = analysis.module_map||[];
+  const durs = G.data.durations||{};
+  const conf = arch.confidence||0;
+  const pat  = arch.pattern||'Unknown';
+  const sub  = (arch.sub_patterns||[])[0]||'Detected pattern';
+  const lvl  = comp.level||'Medium';
+  const sc   = comp.score||50;
+  const summ = analysis.architecture_summary||'';
+  const reason = (arch.reasoning||'No reasoning available').substring(0,160);
+
+  document.getElementById('page-ovr').innerHTML = `
+  <div class="inner">
+    <div class="row stagger-1" style="flex:1.1;">
+      <div class="card" style="flex:1.1;">
+        <div class="lbl">Repository</div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-main);margin-bottom:6px;">${esc(meta.full_name||'Repository')}</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-bottom:14px;">${esc((meta.description||'').substring(0,80))}</div>
+        <div style="display:flex;gap:24px;">
+          <div><div style="font-size:18px;font-weight:700;color:var(--text-main);">${(meta.stars||0).toLocaleString()}</div><div style="font-size:13px;color:var(--text-dark);margin-top:2px;">Stars</div></div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--text-main);">${(meta.forks||0).toLocaleString()}</div><div style="font-size:13px;color:var(--text-dark);margin-top:2px;">Forks</div></div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--text-main);">${(raw.total_files||0).toLocaleString()}</div><div style="font-size:13px;color:var(--text-dark);margin-top:2px;">Files</div></div>
+        </div>
+      </div>
+      <div class="card arch-card" style="flex:1.1;">
+        <div class="lbl">Architecture</div>
+        <div style="font-size:24px;font-weight:700;color:var(--text-main);margin-bottom:4px;">${esc(pat)}</div>
+        <div style="font-size:15px;color:#ffe4d6;margin-bottom:16px;">${esc(sub)}</div>
+        <div class="conf-bar"><div class="conf-fill" style="width:${conf}%;"></div></div>
+        <div style="font-size:14px;color:#ffe4d6;margin-top:6px;">${conf}% confidence</div>
+      </div>
+      <div class="card" style="flex:0.8;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div class="lbl" style="align-self:flex-start;">Complexity</div>
+        ${gaugeHTML(sc,lvl)}
+      </div>
+    </div>
+    <div class="row stagger-2" style="flex:0.9;">
+      <div class="card" style="flex:1;">
+        <div class="lbl">Tech Stack</div>
+        <div>${tech.map(techTag).join('')}</div>
+      </div>
+      <div class="card" style="flex:1;">
+        <div class="lbl">Stats</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><div style="font-size:18px;font-weight:700;color:var(--text-main);">${raw.files_analyzed||0}</div><div style="font-size:13px;color:var(--text-dark);">Analyzed</div></div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--text-main);">${mods.length}</div><div style="font-size:13px;color:var(--text-dark);">Modules</div></div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--ui-orange);">${durs.total||0}s</div><div style="font-size:13px;color:var(--text-dark);">Time</div></div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--text-main);">3</div><div style="font-size:13px;color:var(--text-dark);">Agents</div></div>
+        </div>
+      </div>
+      <div class="card" style="flex:1;">
+        <div class="lbl">Why ${esc(pat)}?</div>
+        <div style="font-size:15px;color:var(--text-muted);line-height:1.7;">${esc(reason)}</div>
+      </div>
+    </div>
+    ${summ?`<div class="row stagger-3" style="flex:0.9;">
+      <div class="card" style="flex:1;">
+        <div class="lbl">Architecture Summary</div>
+        <div style="font-size:15px;color:var(--text-muted);line-height:1.7;">${esc(summ)}</div>
+        <div style="font-size:13px;color:var(--text-dark);margin-top:8px;">— Reasoning Agent · Llama 3.3 70B</div>
+      </div>
+    </div>`:''}
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// AGENT ROOM
+// ═══════════════════════════════════════
+function renderAgentRoom(){
+  const msgs = G.agentMsgs;
+  const durs = G.data ? G.data.durations : {};
+  const avC = {Perception:'av-per',Reasoning:'av-rea',Action:'av-act'};
+  const bbC = {Perception:'bbl-per',Reasoning:'bbl-rea',Action:'bbl-act'};
+  const abC = {Perception:'PER',Reasoning:'REA',Action:'ACT'};
+  let html = '';
+  
+  // Re-render past messages as statically styled staggered elements
+  msgs.forEach((m, idx)=>{
+    const av=avC[m.agent]||'av-per', bb=bbC[m.agent]||'bbl-per', ab=abC[m.agent]||'?';
+    const isR = m.agent==='Reasoning';
+    html += isR
+      ? `<div class="bubble-right msg-pop-r" style="animation-delay: ${idx * 0.08}s"><div class="msg-wrap-r"><div class="msg-meta" style="justify-content:flex-end;"><strong>${esc(m.agent)}</strong></div><div class="bbl ${bb}">${m.text}</div></div><div class="av ${av}">${ab}</div></div>`
+      : `<div class="bubble-left msg-pop" style="animation-delay: ${idx * 0.08}s"><div class="av ${av}">${ab}</div><div class="msg-wrap"><div class="msg-meta"><strong>${esc(m.agent)}</strong> <span style="color:var(--text-dark);">${esc(m.model||'')}</span></div><div class="bbl ${bb}">${m.text}</div></div></div>`;
+  });
+  
+  document.getElementById('page-agt').innerHTML = `
+  <div class="inner" style="padding:24px 32px;">
+    <div class="stagger-1" style="font-size:24px;font-weight:700;color:var(--text-main);margin-bottom:6px;">Live Agent Pipeline</div>
+    <div class="stagger-1" style="font-size:16px;color:var(--text-muted);margin-bottom:24px;">Agents talking to each other in real time</div>
+    <div style="display:flex;flex-direction:column;gap:16px;max-width:800px;">
+      ${html||'<div class="stagger-2" style="color:var(--text-dark);font-size:15px;">No messages recorded.</div>'}
+    </div>
+    ${G.data && (G.data.analysis||{}).reasoning_trace && G.data.analysis.reasoning_trace.length ? `
+    <div class="stagger-3" style="margin-top:28px;">
+      <div style="font-size:16px;font-weight:700;color:var(--text-main);margin-bottom:6px;">&#129504; Reasoning Trace</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-bottom:16px;">Step-by-step agent thinking process</div>
+      <div style="display:flex;flex-direction:column;border:1px solid var(--border-color);border-radius:14px;overflow:hidden;background:var(--bg-card);max-width:800px;">
+        ${G.data.analysis.reasoning_trace.map((t,i)=>`<div style="display:flex;gap:16px;padding:14px 20px;${i<G.data.analysis.reasoning_trace.length-1?'border-bottom:1px solid var(--border-color);':''}">
+            <div style="width:26px;height:26px;border-radius:50%;background:rgba(255,107,53,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ui-orange);flex-shrink:0;">${t.step||i+1}</div>
+            <div><div style="font-size:13px;color:var(--text-dark);margin-bottom:3px;">THOUGHT &rarr; ${esc(t.agent_thought||'')}</div>
+            <div style="font-size:14px;color:var(--text-main);">${esc(t.finding||'')}</div></div></div>`).join('')}
+      </div>
+    </div>` : ''}
+    ${G.data?`<div class="card stagger-4" style="margin-top:24px;display:flex;gap:32px;flex-wrap:wrap;flex-shrink:0;">
+      <span style="font-size:15px;color:var(--text-muted);">Messages: <strong style="color:var(--text-main);">${msgs.length}</strong></span>
+      <span style="font-size:15px;color:var(--text-muted);">Total: <strong style="color:var(--ui-orange);font-family:monospace;">${durs.total||0}s</strong></span>
+      <span style="font-size:15px;color:var(--text-muted);">Platform: <strong style="color:#4ADE80;">Groq</strong></span>
+    </div>`:''}
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// MODULES
+// ═══════════════════════════════════════
+function renderModules(){
+  if(!G.data) return;
+  const mods = G.data.analysis.module_map||[];
+  const dep  = G.data.analysis.dependency_analysis||{};
+  const critName = (dep.critical_module||'').toLowerCase();
+
+  const cards = mods.map((mod,i)=>{
+    const name=mod.name||'?', purpose=mod.purpose||'', files=mod.files||[], crit=mod.criticality||'Medium';
+    const isCrit = mod.critical || name.toLowerCase()===critName;
+    if(isCrit) return `<div class="mod-card critical stagger-2" onclick="openModModal(${i})">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:18px;font-weight:700;color:var(--text-main);">${esc(name)}</span>
+        <span class="badge" style="background:var(--brand-main);color:#fff;">Critical</span>
+        <span class="badge" style="background:#a34f32;color:#ffe4d6;">SPOF</span>
+      </div>
+      <div style="font-size:15px;color:#ffe4d6;line-height:1.5;">${esc(purpose.substring(0,120))}</div>
+      <div class="filepath-light">${esc(files[0]||'')}</div>
+    </div>`;
+    return `<div class="mod-card stagger-2" onclick="openModModal(${i})">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:18px;font-weight:700;color:var(--text-main);">${esc(name)}</span>
+        ${cbadge(crit)}
+      </div>
+      <div style="font-size:15px;color:var(--text-muted);line-height:1.5;">${esc(purpose.substring(0,120))}</div>
+      <div class="filepath">${esc(files[0]||'')}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('page-mod').innerHTML = `
+  <div class="inner" style="padding:24px 32px;">
+    <div class="stagger-1" style="margin-bottom:20px;flex-shrink:0;">
+      <div style="font-size:18px;font-weight:700;color:var(--text-main);">${mods.length} Modules</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-top:6px;">Critical module: <span style="color:var(--ui-orange);">${esc(dep.critical_module||'')}</span> · Click any card to expand</div>
+    </div>
+    <div class="mod-grid">${cards}</div>
+  </div>`;
+}
+
+function openModModal(i){
+  if(!G.data) return;
+  const mods = G.data.analysis.module_map||[];
+  const dep  = G.data.analysis.dependency_analysis||{};
+  const critName = (dep.critical_module||'').toLowerCase();
+  const mod = mods[i]; if(!mod) return;
+  G.expandedMod = i;
+  const name=mod.name||'?', purpose=mod.purpose||'', files=mod.files||[], crit=mod.criticality||'Medium';
+  const isCrit = mod.critical || name.toLowerCase()===critName;
+  const loc = mod.lines_of_code_estimate||0;
+  const rels = dep.relationships||[];
+  const from = rels.filter(r=>(r.from||'').toLowerCase()===name.toLowerCase()).map(r=>r.to);
+  const by   = rels.filter(r=>(r.to||'').toLowerCase()===name.toLowerCase()).map(r=>r.from);
+  const c = CC[crit]||'var(--text-muted)';
+
+  document.getElementById('mod-modal').innerHTML = `
+  <div class="modal-hdr">
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <span style="font-size:20px;font-weight:700;color:var(--text-main);">${esc(name)}</span>
+        ${isCrit
+          ? `<span class="badge" style="background:var(--brand-main);color:#fff;">Critical</span><span class="badge" style="background:#a34f32;color:#ffe4d6;">SPOF</span>`
+          : cbadge(crit)}
+      </div>
+      <div style="font-size:14px;color:#ffe4d6;">Core application module</div>
+    </div>
+    <button class="modal-close" onclick="closeModModal()">
+      <svg width="14" height="14" viewBox="0 0 10 10" fill="none"><path d="M2 2l6 6M8 2l-6 6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div>
+      <div class="lbl">Purpose</div>
+      <div style="font-size:15px;color:var(--text-muted);line-height:1.7;">${esc(purpose)}</div>
+    </div>
+    <div style="display:flex;gap:16px;">
+      <div class="stat-sm"><div style="font-size:18px;font-weight:700;color:var(--text-main);">~${loc.toLocaleString()}</div><div style="font-size:13px;color:var(--text-dark);margin-top:6px;">Lines of code</div></div>
+      <div class="stat-sm"><div style="font-size:18px;font-weight:700;color:${c};">${esc(crit)}</div><div style="font-size:13px;color:var(--text-dark);margin-top:6px;">Criticality</div></div>
+      <div class="stat-sm"><div style="font-size:18px;font-weight:700;color:var(--text-main);">${from.length+by.length}</div><div style="font-size:13px;color:var(--text-dark);margin-top:6px;">Dependencies</div></div>
+    </div>
+    ${files.length?`<div><div class="lbl">Files</div>${files.slice(0,5).map(f=>`<span class="ftag">${esc(f)}</span>`).join('')}</div>`:''}
+    <div>
+      <div class="lbl">Dependencies</div>
+      <div style="font-size:14px;display:flex;gap:10px;align-items:center;margin-bottom:8px;">
+        <span style="color:var(--text-muted);min-width:100px;">Imports from:</span>
+        ${from.length ? from.map(x=>`<span style="color:#4A9FD4;">${esc(x)}</span>`).join(', ') : '<span style="color:var(--text-dark);">none</span>'}
+      </div>
+      <div style="font-size:14px;display:flex;gap:10px;align-items:center;">
+        <span style="color:var(--text-muted);min-width:100px;">Imported by:</span>
+        ${by.length ? by.map(x=>`<span style="color:var(--ui-orange);">${esc(x)}</span>`).join(', ') : '<span style="color:var(--text-dark);">none</span>'}
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;">
+      <button class="navbtn" onclick="navMod(-1)" ${i===0?'disabled':''}>← Prev</button>
+      <span style="font-size:14px;color:var(--text-muted);">${i+1} of ${mods.length}</span>
+      <button class="navbtn" onclick="navMod(1)" ${i===mods.length-1?'disabled':''}>Next →</button>
+    </div>
+  </div>`;
+
+  document.getElementById('mod-overlay').classList.add('open');
+}
+function closeModModal(){ document.getElementById('mod-overlay').classList.remove('open'); }
+function navMod(dir){ openModModal(Math.max(0, Math.min((G.data.analysis.module_map||[]).length-1, G.expandedMod+dir))); }
+document.getElementById('mod-overlay').addEventListener('click', e=>{
+  if(e.target===document.getElementById('mod-overlay')) closeModModal();
+});
+
+// ═══════════════════════════════════════
+// GRAPH
+// ═══════════════════════════════════════
+function renderGraph(){
+  if(!G.data) return;
+  const b64  = G.data.graph_b64;
+  const mods = G.data.analysis.module_map||[];
+  const dep  = G.data.analysis.dependency_analysis||{};
+  const critName = (dep.critical_module||'').toLowerCase();
+
+  let inner;
+  if(b64){
+    inner = `<img src="data:image/png;base64,${b64}" style="width:100%;height:100%;object-fit:contain;border-radius:12px;" alt="Dependency Graph"/>`;
+  } else {
+    const cx=360, cy=170;
+    const nonCrit = mods.filter(m=>(m.name||'').toLowerCase()!==critName);
+    let lines='', nodes='';
+    nonCrit.forEach((m,i)=>{
+      const angle = ((i+0.5)/Math.max(nonCrit.length,1))*Math.PI*2 - Math.PI/2;
+      const x=cx+220*Math.cos(angle), y=cy+130*Math.sin(angle);
+      m._x=x; m._y=y;
+      lines+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--border-color)" stroke-width="1.5"/>`;
+    });
+    nonCrit.forEach(m=>{
+      const isHigh=m.criticality==='High';
+      // Dynamically reference CSS variables for smooth light/dark theme transition within the SVG
+      const fill=isHigh?'#3a5a8a':'var(--bg-card)';
+      const stroke=isHigh?'#4A9FD4':'var(--border-hover)';
+      const r=isHigh?34:28;
+      const tc=isHigh?'#fff':'var(--text-main)';
+      nodes+=`<circle cx="${m._x.toFixed(1)}" cy="${m._y.toFixed(1)}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+      <text x="${m._x.toFixed(1)}" y="${(m._y+5).toFixed(1)}" text-anchor="middle" font-size="12" fill="${tc}">${esc(m.name||'')}</text>`;
+    });
+    const crit = mods.find(m=>(m.name||'').toLowerCase()===critName)||mods[0]||{name:'core'};
+    nodes+=`<circle cx="${cx}" cy="${cy}" r="56" fill="var(--ui-orange)" stroke="var(--brand-main)" stroke-width="3"/>
+    <text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">${esc(crit.name)}</text>
+    <text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="12" fill="#ffe4d6">critical</text>`;
+    inner=`<svg width="100%" height="100%" viewBox="0 0 720 340" preserveAspectRatio="xMidYMid meet">${lines}${nodes}</svg>`;
+  }
+
+  document.getElementById('page-grp').innerHTML = `
+  <div class="inner" style="padding:24px 32px;">
+    <div class="stagger-1" style="flex-shrink:0;margin-bottom:16px;">
+      <div style="font-size:18px;font-weight:700;color:var(--text-main);">Dependency Graph</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-top:6px;">Node size = dependency count · Orange = critical module</div>
+    </div>
+    <div class="graph-area stagger-2">${inner}</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// IMPROVEMENTS
+// ═══════════════════════════════════════
+function renderImprovements(){
+  if(!G.data) return;
+  const imps = G.data.action.improvements||[];
+  const q    = G.data.action.code_quality_insights||{};
+  const qs   = q.overall_quality_score||0;
+  const qc   = qs>=75?'#4ADE80':qs>=50?'var(--accent-orange)':'#E85555';
+  const sec  = q.security_concerns||[];
+  const perf = q.performance_bottlenecks||[];
+  const miss = q.missing_practices||[];
+
+  const itemsHTML = imps.map((imp,i)=>{
+    const impact=imp.impact||'Medium';
+    const c=CC[impact]||'var(--text-muted)';
+    const isLight = document.body.classList.contains('light-theme');
+    const bg=isLight ? (CB_LIGHT[impact]||'var(--bg-input)') : (CB_DARK[impact]||'var(--bg-input)');
+    return `<div class="imp-wrap stagger-2" style="animation-delay: ${0.12 + (i*0.05)}s" id="imp-wrap-${i}">
+      <div class="imp-row" id="imp-row-${i}" onclick="toggleImp(${i})">
+        <div class="imp-dot" style="background:${c};"></div>
+        <span style="font-size:16px;font-weight:${impact==='Critical'?'600':'500'};color:var(--text-main);flex:1;">${esc(imp.title||'')}</span>
+        <span class="badge" style="background:${bg};color:${c};border:1px solid ${c}44;">${esc(impact)}</span>
+      </div>
+      <div class="imp-body" id="imp-body-${i}">
+        <div style="font-size:12px;font-weight:700;color:var(--ui-orange);letter-spacing:.08em;margin-bottom:6px;">PROBLEM</div>
+        <div style="font-size:15px;color:var(--text-muted);line-height:1.6;margin-bottom:${imp.solution?'16px':'0'};">${esc(imp.problem||'')}</div>
+        ${imp.solution?`<div style="font-size:12px;font-weight:700;color:#4ADE80;letter-spacing:.08em;margin-bottom:6px;">SOLUTION</div>
+        <div style="font-size:15px;color:var(--text-muted);line-height:1.6;">${esc(imp.solution)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('page-imp').innerHTML = `
+  <div class="inner" style="padding:24px 32px;">
+    <div class="stagger-1" style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-shrink:0;">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-main);">Top ${imps.length} Recommendations</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-top:6px;">Sorted by impact · Critical first</div>
+      </div>
+      <div style="background:var(--bg-input);border:1px solid var(--border-color);border-radius:12px;padding:12px 24px;text-align:center;flex-shrink:0;">
+        <div style="font-size:28px;font-weight:700;color:${qc};">${qs}</div>
+        <div style="font-size:13px;color:var(--text-dark);margin-top:4px;">Quality Score</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0;flex-shrink:0;">${itemsHTML}</div>
+    ${sec.length||perf.length||miss.length?`<div class="stagger-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:24px;flex-shrink:0;">
+      <div class="card"><div class="lbl" style="color:#E85555;">Security</div>${sec.slice(0,4).map(s=>`<div style="font-size:14px;color:var(--text-muted);padding:8px 0;border-bottom:1px solid var(--border-color);">${esc(s)}</div>`).join('')}</div>
+      <div class="card"><div class="lbl" style="color:var(--ui-orange);">Performance</div>${perf.slice(0,4).map(s=>`<div style="font-size:14px;color:var(--text-muted);padding:8px 0;border-bottom:1px solid var(--border-color);">${esc(s)}</div>`).join('')}</div>
+      <div class="card"><div class="lbl">Missing Practices</div>${miss.slice(0,4).map(s=>`<div style="font-size:14px;color:var(--text-muted);padding:8px 0;border-bottom:1px solid var(--border-color);">${esc(s)}</div>`).join('')}</div>
+    </div>`:''}
+  </div>`;
+
+  // auto-expand first critical
+  const fc = imps.findIndex(im=>im.impact==='Critical');
+  if(fc>=0) toggleImp(fc);
+}
+
+function toggleImp(i){
+  const row  = document.getElementById('imp-row-'+i);
+  const body = document.getElementById('imp-body-'+i);
+  if(!row||!body) return;
+  const isOpen = body.classList.contains('show');
+  body.classList.toggle('show', !isOpen);
+  row.classList.toggle('open', !isOpen);
+}
+
+// ═══════════════════════════════════════
+// MODERNIZE
+// ═══════════════════════════════════════
+function renderModernize(){
+  if(!G.data) return;
+  const plan   = G.data.action.modernization_plan||{};
+  const onboard= G.data.action.onboarding_guide||[];
+  const cur    = plan.current_state||{};
+  const rec    = plan.recommended_state||{};
+  const steps  = plan.migration_steps||[];
+  const isLight = document.body.classList.contains('light-theme');
+
+  const pains  = (cur.pain_points||['Hard to scale','Single point of failure','Full redeploy for any change'])
+    .map(p=>`<div class="mrow" style="background:${isLight?'#fee2e2':'#3a2020'};"><span style="color:#e85555;font-weight:700;font-size:15px;margin-right:4px;">✕</span><span style="color:${isLight?'#991b1b':'#e0a0a0'};">${esc(p)}</span></div>`).join('');
+  const recs   = (rec.key_changes||['Extract services by domain','Add API gateway','Event-driven communication'])
+    .map(c=>`<div class="mrow" style="background:${isLight?'#dcfce7':'#1a2e20'};"><span style="color:#16a34a;font-weight:700;font-size:15px;margin-right:4px;">✓</span><span style="color:${isLight?'#166534':'#a0e0b0'};">${esc(c)}</span></div>`).join('');
+  const stH    = steps.map((s,idx)=>`<div class="roadmap-item stagger-3"><div class="rnum">${s.step||idx+1}</div><span style="font-size:15px;color:var(--text-main);flex:1;">${esc(s.action||'')}</span><span style="font-size:14px;color:var(--text-muted);">${esc(s.effort||'')}</span></div>`).join('');
+  const onbH   = (onboard.length?onboard:['Start with README and main entry point','Explore folder structure and core modules','Run locally following setup guide'])
+    .map(p=>`<div class="cli-line"><span style="color:var(--accent-orange);">$</span> ${esc(p)}</div>`).join('');
+
+  document.getElementById('page-mdr').innerHTML = `
+  <div class="inner" style="padding:24px 32px;gap:20px;">
+    <div class="stagger-1" style="font-size:18px;font-weight:700;color:var(--text-main);flex-shrink:0;">Modernization Plan</div>
+    <div class="stagger-2" style="display:flex;gap:20px;flex-shrink:0;">
+      <div class="mod-side" style="border:1px solid ${isLight?'#fca5a5':'#4a2a2a'};">
+        <div class="lbl" style="color:#d06060;">Current State</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text-main);margin-bottom:12px;">${esc(cur.description||'Monolithic — all in one codebase')}</div>
+        ${pains}
+      </div>
+      <div class="mod-side" style="border:1px solid ${isLight?'#86efac':'#2a4a30'};">
+        <div class="lbl" style="color:#60d080;">Recommended</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text-main);margin-bottom:12px;">${esc(rec.description||'Modular services with clear boundaries')}</div>
+        ${recs}
+      </div>
+    </div>
+    ${stH?`<div class="stagger-3" style="font-size:16px;font-weight:700;color:var(--text-main);flex-shrink:0;margin-top:12px;">Migration Roadmap</div>
+    <div style="display:flex;flex-direction:column;gap:12px;flex-shrink:0;">${stH}</div>`:''}
+    <div class="stagger-3" style="background:var(--bg-input);border:1px solid var(--border-color);border-radius:10px;padding:16px 20px;flex-shrink:0;margin-top:12px;">
+      <div class="lbl" style="color:var(--text-muted);">// Onboarding Guide</div>
+      ${onbH}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// COMPARE
+// ═══════════════════════════════════════
+function renderCompare(){
+  const r1=G.data, r2=G.compareData;
+  const url1 = r1?(r1.raw.metadata.full_name||'Repo 1'):'—';
+  const rows = [
+    {l:'Repository',  v1:url1, v2:r2?r2.metadata.full_name||'—':'—'},
+    {l:'Stars',       v1:r1?(r1.raw.metadata.stars||0).toLocaleString():'—', v2:r2?(r2.metadata.stars||0).toLocaleString():'—'},
+    {l:'Files',       v1:r1?(r1.raw.total_files||0).toLocaleString():'—', v2:r2?r2.total_files||0:'—'},
+    {l:'Architecture',v1:r1?r1.analysis.architecture_analysis.pattern||'—':'—', v2:r2?r2.architecture.pattern||'—':'—'},
+    {l:'Confidence',  v1:r1?(r1.analysis.architecture_analysis.confidence||0)+'%':'—', v2:r2?(r2.architecture.confidence||0)+'%':'—'},
+    {l:'Complexity',  v1:r1?r1.analysis.complexity_score.level||'—':'—', v2:r2?r2.complexity.level||'—':'—'},
+    {l:'Score',       v1:r1?r1.analysis.complexity_score.score||0:'—', v2:r2?r2.complexity.score||0:'—'},
+    {l:'Modules',     v1:r1?(r1.analysis.module_map||[]).length:'—', v2:r2?r2.modules||0:'—'},
+  ];
+
+  document.getElementById('page-cmp').innerHTML = `
+  <div class="inner" style="padding:24px 32px;gap:20px;">
+    <div class="stagger-1" style="flex-shrink:0;">
+      <div style="font-size:18px;font-weight:700;color:var(--text-main);">Cross-Repo Comparison</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-top:6px;">Analyze two repositories side by side</div>
+    </div>
+    <div class="stagger-2" style="display:flex;gap:16px;flex-shrink:0;">
+      <input class="cmp-inp active" value="${esc(url1)}" readonly/>
+      <input class="cmp-inp" id="cmp-url" placeholder="https://github.com/owner/repo2"/>
+      <button class="cmp-btn" onclick="doCompare()">Compare</button>
+    </div>
+    <div class="cmp-table stagger-3">
+      <table>
+        <thead><tr>
+          <td style="width:35%;">Metric</td>
+          <td class="org">Repo 1</td>
+          <td class="org">Repo 2</td>
+        </tr></thead>
+        <tbody>${rows.map(r=>`<tr><td>${esc(r.l)}</td><td class="val">${esc(String(r.v1))}</td><td class="${r2?'val':'mut'}">${esc(String(r.v2))}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>
+    <div id="cmp-status" style="font-size:14px;color:var(--text-dark);font-family:monospace;flex-shrink:0;"></div>
+  </div>`;
+}
+
+async function doCompare(){
+  const url = document.getElementById('cmp-url')?.value?.trim();
+  if(!url) return;
+  const st = document.getElementById('cmp-status');
+  if(st) st.textContent = 'Analyzing second repo...';
+  try{
+    const res = await fetch('/api/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+    const data = await res.json();
+    if(data.error){ if(st) st.textContent='Error: '+data.error; return; }
+    G.compareData = data;
+    renderCompare();
+  }catch(e){ if(st) st.textContent='Failed: '+e.message; }
+}
+
+// ═══════════════════════════════════════
+// DOCS
+// ═══════════════════════════════════════
+function renderDocs(){
+  const has = !!G.docsContent;
+  document.getElementById('page-doc').innerHTML = `
+  <div class="inner" style="padding:24px 32px;gap:20px;">
+    <div class="stagger-1" style="display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-main);">Auto Documentation</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-top:6px;">AI-generated README · Llama 3.1 8B</div>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <button class="doc-gen" onclick="generateDocs()">Generate Docs</button>
+        ${has?`<button class="doc-dl" onclick="downloadDocs()">Download README.md</button>`:''}
+      </div>
+    </div>
+    <div class="doc-area stagger-2">${has?esc(G.docsContent):'<span style="color:var(--text-dark);">Click "Generate Docs" to create AI-powered documentation.</span>'}</div>
+    <div id="docs-status" style="font-size:14px;color:var(--text-dark);font-family:monospace;flex-shrink:0;"></div>
+  </div>`;
+}
+
+async function generateDocs(){
+  const st = document.getElementById('docs-status');
+  if(st) st.textContent='Generating...';
+  try{
+    const res = await fetch('/api/docs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({analysis:G.data.analysis,perception:G.data.perception})});
+    const data = await res.json();
+    if(data.error){ if(st) st.textContent='Error: '+data.error; return; }
+    G.docsContent = data.docs;
+    renderDocs();
+  }catch(e){ if(st) st.textContent='Failed: '+e.message; }
+}
+
+function downloadDocs(){
+  if(!G.docsContent) return;
+  const a = document.createElement('a');
+  a.href = 'data:text/markdown;charset=utf-8,'+encodeURIComponent(G.docsContent);
+  a.download = 'README.md'; a.click();
+}
+
+// ═══════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════
+function renderChat(){
+  const suggs = ['How does auth work?','Most critical module?','Add API endpoint?','Main security risks?','Rewrite as microservices?','Explain to new dev'];
+  const useCopilot = G.useCopilot||false;
+  const msgs = G.chatHistory.map(m=>{
+    if(m.role==='user') return `<div style="display:flex;justify-content:flex-end;"><div class="usr-bbl"><div style="font-size:15px;color:#fff;">${esc(m.content)}</div></div></div>`;
+    const mdContent = (m.content||'').replace(/`([^`]+)`/g,'<code style="font-family:monospace;background:var(--bg-input);padding:2px 6px;border-radius:4px;font-size:13px;">$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    return `<div style="display:flex;align-items:flex-start;gap:12px;">
+      <div class="ai-av">${useCopilot?'🤖':'AI'}</div>
+      <div>
+        <div class="ai-bbl"><div style="font-size:15px;color:var(--text-main);line-height:1.65;">${mdContent}</div></div>
+        <div class="model-tag">${m.model||'Llama 3.3 70B'}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('page-cht').innerHTML = `
+  <div class="inner" style="padding:24px 32px;">
+    <div class="stagger-1" style="flex-shrink:0;margin-bottom:12px;display:flex;align-items:flex-start;justify-content:space-between;">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-main);">Ask GitAtlas</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-top:6px;">${G.useCopilot?'GitHub Copilot (gpt-4o-mini) · GitHub Models API':'Llama 3.3 70B · full codebase context loaded'}</div>
+      </div>
+      <button onclick="toggleCopilot()" style="font-size:13px;padding:8px 16px;border-radius:10px;border:1px solid ${G.useCopilot?'#4ADE80':'var(--border-color)'};background:${G.useCopilot?'rgba(74,222,128,0.1)':'var(--bg-input)'};color:${G.useCopilot?'#4ADE80':'var(--text-muted)'};cursor:pointer;transition:all .3s;flex-shrink:0;">
+        ${G.useCopilot?'✓ Copilot ON':'Use GitHub Copilot'}
+      </button>
+    </div>
+    <div class="stagger-2" style="display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0;margin-bottom:24px;">
+      ${suggs.map(s=>`<div class="chat-pill" onclick="sendChat(${JSON.stringify(s)})">${esc(s)}</div>`).join('')}
+    </div>
+    <div class="stagger-3" style="flex:1;display:flex;flex-direction:column;gap:16px;overflow-y:auto;margin-bottom:16px;min-height:0;" id="chat-messages">${msgs}</div>
+    <div id="chat-typing" style="display:none;font-size:14px;color:var(--text-dark);padding:8px 0;flex-shrink:0;">Thinking...</div>
+    <div class="chat-input-row stagger-3">
+      <input id="chat-input" type="text" placeholder="Ask anything about this codebase..." onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button class="chat-send" onclick="sendChat()">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M7 11V3M3 7l4-4 4 4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>`;
+
+  setTimeout(()=>{ const el=document.getElementById('chat-messages'); if(el) el.scrollTop=el.scrollHeight; },50);
+}
+
+async function sendChat(question){
+  const input = document.getElementById('chat-input');
+  const q = question||(input?.value?.trim());
+  if(!q||!G.data) return;
+  if(input) input.value='';
+  G.chatHistory.push({role:'user',content:q});
+  renderChat();
+  const ty = document.getElementById('chat-typing');
+  if(ty) ty.style.display='block';
+  try{
+    const ctx = {analysis:G.data.analysis, action_data:G.data.action, perception_data:{languages_detected:G.data.perception.languages, _raw:{files_content:{}, metadata:G.data.raw.metadata}}};
+    const endpoint = G.useCopilot ? '/api/copilot' : '/api/chat';
+    const res = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,context:ctx})});
+    const data = await res.json();
+    G.chatHistory.push({role:'assistant',content:data.reply||data.error||'No response',model:data.model||'Llama 3.3 70B'});
+  }catch(e){ G.chatHistory.push({role:'assistant',content:'Error: '+e.message}); }
+  renderChat();
+}
+
+// ═══════════════════════════════════════
+// SECURITY FINDINGS
+// ═══════════════════════════════════════
+function renderSecurity(){
+  if(!G.data) return;
+  const sec = G.data.analysis.security_surface||[];
+  const sevColor = {Critical:'#E85555',High:'#FF6B35',Medium:'var(--accent-orange)',Low:'#4ADE80'};
+  const sevBg = {Critical:'rgba(232,85,85,0.12)',High:'rgba(255,107,53,0.12)',Medium:'rgba(230,125,34,0.12)',Low:'rgba(74,222,128,0.12)'};
+
+  const cards = sec.map((s,i)=>{
+    const sev = s.severity||'Medium';
+    const c = sevColor[sev]||'var(--text-muted)';
+    const bg = sevBg[sev]||'var(--bg-input)';
+    return `<div class="card stagger-2" style="animation-delay:${i*0.06}s;border-left:3px solid ${c};">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <span style="font-size:11px;font-weight:700;letter-spacing:.08em;padding:4px 10px;border-radius:6px;background:${bg};color:${c};">${esc(sev.toUpperCase())}</span>
+        <span style="font-size:16px;font-weight:600;color:var(--text-main);">${esc(s.title||'Security Finding')}</span>
+      </div>
+      ${s.file?`<div style="font-family:monospace;font-size:13px;color:var(--ui-orange);margin-bottom:8px;background:var(--bg-input);padding:6px 10px;border-radius:6px;display:inline-block;">${esc(s.file)}${s.line_hint?' · '+esc(s.line_hint):''}</div>`:''} 
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:${s.recommendation?'10px':'0'};">${esc(s.description||'')}</div>
+      ${s.recommendation?`<div style="font-size:13px;font-weight:700;color:#4ADE80;margin-bottom:4px;">FIX</div><div style="font-size:14px;color:var(--text-muted);line-height:1.5;">${esc(s.recommendation)}</div>`:'' }
+    </div>`;
+  }).join('');
+
+  const critCount = sec.filter(s=>s.severity==='Critical').length;
+  const highCount = sec.filter(s=>s.severity==='High').length;
+
+  document.getElementById('page-sec').innerHTML = `
+  <div class="inner" style="padding:24px 32px;gap:16px;">
+    <div class="stagger-1" style="display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-main);">Security Findings</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-top:6px;">${sec.length} findings · Specific callouts with file references</div>
+      </div>
+      <div style="display:flex;gap:12px;">
+        ${critCount?`<div style="background:rgba(232,85,85,0.12);border:1px solid #E85555;border-radius:10px;padding:10px 18px;text-align:center;"><div style="font-size:22px;font-weight:700;color:#E85555;">${critCount}</div><div style="font-size:12px;color:var(--text-dark);">Critical</div></div>`:''}
+        ${highCount?`<div style="background:rgba(255,107,53,0.12);border:1px solid var(--ui-orange);border-radius:10px;padding:10px 18px;text-align:center;"><div style="font-size:22px;font-weight:700;color:var(--ui-orange);">${highCount}</div><div style="font-size:12px;color:var(--text-dark);">High</div></div>`:''}
+      </div>
+    </div>
+    ${sec.length ? `<div style="display:flex;flex-direction:column;gap:12px;">${cards}</div>` : '<div class="card stagger-2" style="color:var(--text-dark);font-size:15px;">✓ No security issues flagged by the Reasoning Agent.</div>'}
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// ONBOARDING BRIEF
+// ═══════════════════════════════════════
+function renderOnboarding(){
+  if(!G.data) return;
+  const onboard = G.data.action.onboarding_guide||[];
+  const overview = G.data.analysis.project_overview||{};
+  const arch = G.data.analysis.architecture_analysis||{};
+  const mods = G.data.analysis.module_map||[];
+  const critMod = mods.find(m=>m.critical)||mods[0]||{};
+  const meta = G.data.raw.metadata||{};
+  const perception = G.data.perception||{};
+
+  const steps = (onboard.length?onboard:['Clone the repo and install dependencies','Explore the main entry point','Check configuration files','Read the architecture overview','Run the project locally']).map((s,i)=>`
+    <div class="stagger-2" style="animation-delay:${0.1+i*0.06}s;display:flex;gap:16px;align-items:flex-start;padding:16px 20px;${i<onboard.length-1?'border-bottom:1px solid var(--border-color);':''}">
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,107,53,0.15);border:2px solid var(--ui-orange);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--ui-orange);flex-shrink:0;">${i+1}</div>
+      <div style="flex:1;font-size:15px;color:var(--text-main);line-height:1.6;padding-top:4px;">${esc(s)}</div>
+    </div>`).join('');
+
+  document.getElementById('page-onb').innerHTML = `
+  <div class="inner" style="padding:24px 32px;gap:20px;">
+    <div class="stagger-1" style="flex-shrink:0;">
+      <div style="font-size:18px;font-weight:700;color:var(--text-main);">New Developer Onboarding Brief</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-top:6px;">Everything a new dev needs to get started with this codebase in one page</div>
+    </div>
+    <div class="stagger-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex-shrink:0;">
+      <div class="card">
+        <div class="lbl">What this does</div>
+        <div style="font-size:15px;color:var(--text-muted);line-height:1.6;">${esc((overview.what_it_does||'').substring(0,200))}</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Tech Stack</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;">${(overview.tech_stack||perception.languages||[]).map(t=>`<span style="font-size:13px;padding:5px 12px;border-radius:8px;background:var(--bg-input);color:var(--text-main);">${esc(String(t))}</span>`).join('')}</div>
+      </div>
+    </div>
+    <div class="stagger-2" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;flex-shrink:0;">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:26px;font-weight:700;color:var(--ui-orange);">${(G.data.analysis.module_map||[]).length}</div>
+        <div style="font-size:13px;color:var(--text-dark);margin-top:4px;">Modules</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:26px;font-weight:700;color:var(--text-main);">${esc(arch.pattern||'—')}</div>
+        <div style="font-size:13px;color:var(--text-dark);margin-top:4px;">Architecture</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:26px;font-weight:700;color:#4ADE80;">${critMod.name||'—'}</div>
+        <div style="font-size:13px;color:var(--text-dark);margin-top:4px;">Start Here (Critical)</div>
+      </div>
+    </div>
+    <div class="stagger-3" style="flex-shrink:0;">
+      <div style="font-size:16px;font-weight:700;color:var(--text-main);margin-bottom:12px;">Getting Started Steps</div>
+      <div style="border:1px solid var(--border-color);border-radius:14px;overflow:hidden;background:var(--bg-card);">${steps}</div>
+    </div>
+    <div class="stagger-4" style="background:var(--bg-input);border:1px solid var(--border-color);border-radius:10px;padding:16px 20px;flex-shrink:0;">
+      <div class="lbl">Architecture Summary</div>
+      <div style="font-size:15px;color:var(--text-muted);line-height:1.7;">${esc(G.data.analysis.architecture_summary||'')}</div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// PR DRAFT
+// ═══════════════════════════════════════
+function renderPR(){
+  const has = !!G.prData;
+  document.getElementById('page-pr').innerHTML = `
+  <div class="inner" style="padding:24px 32px;gap:20px;">
+    <div class="stagger-1" style="display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-main);">Simulated PR Creation</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-top:6px;">GitHub Copilot Agent drafts a PR for the top improvement · GitHub Models API</div>
+      </div>
+      <button class="doc-gen" onclick="generatePR()" ${!G.data?'disabled':''}>Generate PR Draft</button>
+    </div>
+    ${has?`
+    <div class="stagger-2" style="border:1px solid var(--border-color);border-radius:14px;overflow:hidden;background:var(--bg-card);flex-shrink:0;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);background:var(--bg-input);">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:rgba(74,222,128,0.15);color:#4ADE80;font-weight:700;">Open</span>
+          <span style="font-size:16px;font-weight:600;color:var(--text-main);">${esc(G.prData.pr_title||'')}</span>
+        </div>
+        <div style="display:flex;gap:16px;">
+          <span style="font-size:13px;color:var(--text-dark);">🌿 <code style="font-family:monospace;color:var(--ui-orange);">${esc(G.prData.pr_branch||'')}</code></span>
+          <span style="font-size:13px;color:var(--text-dark);">⏱ ${esc(G.prData.estimated_review_time||'')}</span>
+          ${(G.prData.labels||[]).map(l=>`<span style="font-size:12px;padding:2px 8px;border-radius:4px;background:var(--bg-input);color:var(--text-muted);border:1px solid var(--border-color);">${esc(l)}</span>`).join('')}
+        </div>
+      </div>
+      <div style="padding:20px;border-bottom:1px solid var(--border-color);">
+        <div class="lbl">PR Description</div>
+        <pre style="font-size:13px;color:var(--text-muted);line-height:1.7;white-space:pre-wrap;font-family:inherit;">${esc(G.prData.pr_body||'')}</pre>
+      </div>
+      <div style="padding:20px;border-bottom:1px solid var(--border-color);">
+        <div class="lbl">Changed Files (${(G.prData.changed_files||[]).length})</div>
+        ${(G.prData.changed_files||[]).map(f=>`
+          <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-color)88;">
+            <span style="font-size:12px;padding:2px 7px;border-radius:4px;background:rgba(74,222,128,0.1);color:#4ADE80;">${esc(f.status||'modified')}</span>
+            <code style="font-family:monospace;font-size:13px;color:var(--ui-orange);flex:1;">${esc(f.file||'')}</code>
+            <span style="font-size:12px;color:#4ADE80;">+${f.additions||0}</span>
+            <span style="font-size:12px;color:#E85555;">-${f.deletions||0}</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-dark);padding:4px 0 8px 0;">${esc(f.description||'')}</div>`).join('')}
+      </div>
+      <div style="padding:20px;">
+        <div class="lbl">PR Checklist</div>
+        ${(G.prData.checklist||[]).map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;"><span style="color:#4ADE80;font-size:16px;">☑</span><span style="font-size:14px;color:var(--text-muted);">${esc(c)}</span></div>`).join('')}
+      </div>
+    </div>`:'<div class="card stagger-2" style="color:var(--text-dark);font-size:15px;">Click "Generate PR Draft" to simulate a GitHub PR for the top improvement recommendation.</div>'}
+    <div id="pr-status" style="font-size:14px;color:var(--text-dark);font-family:monospace;flex-shrink:0;"></div>
+  </div>`;
+}
+
+function toggleCopilot(){
+  G.useCopilot = !G.useCopilot;
+  renderChat();
+}
+
+async function generatePR(){
+  if(!G.data) return;
+  const st = document.getElementById('pr-status');
+  if(st) st.textContent = 'Generating PR draft...';
+  try{
+    const res = await fetch('/api/pr',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action_data:G.data.action})});
+    const data = await res.json();
+    if(data.error){ if(st) st.textContent='Error: '+data.error; return; }
+    G.prData = data;
+    if(st) st.textContent = '';
+    renderPR();
+  }catch(e){ if(st) st.textContent='Failed: '+e.message; }
+}
+
+</script>
+</body>
+</html>

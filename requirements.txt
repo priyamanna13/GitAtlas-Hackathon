@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+groq
+requests
+networkx
+matplotlib
+python-dotenv
+PyGithub
