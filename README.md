@@ -153,7 +153,7 @@ Interactive Dashboard
 
 # 🏗️ Architecture
 
-*(Insert architecture diagram here)*
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/553873a1-4254-453d-9ebf-f749ca44c298" />
 
 ---
 
