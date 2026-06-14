@@ -30,7 +30,14 @@ async def root():
 @app.get("/api/health")
 async def health():
     has_groq = bool(os.getenv("GROQ_API_KEY"))
-    return {"status": "ok", "groq": has_groq}
+    has_foundry = bool(os.getenv("FOUNDRY_PROJECT_ENDPOINT"))
+    foundry_model = os.getenv("MODEL_DEPLOYMENT_NAME", "phi-4-mini-reasoning")
+    return {
+        "status": "ok",
+        "groq": has_groq,
+        "azure_foundry": has_foundry,
+        "foundry_model": foundry_model if has_foundry else None,
+    }
 
 # ── Analyze — SSE streaming ───────────────────────────────────────────────────
 @app.get("/api/analyze")
@@ -74,7 +81,7 @@ async def analyze(url: str):
                 "text": f"Primary: <strong>{lang}</strong>. {fw_str}Selected top <strong>{sel} files</strong>. Passing to Reasoning Agent..."})
             yield send("step", {"step": 1, "status": "done", "dur": percep_dur})
 
-            # ── Step 2: Reasoning ──────────────────────────────────────────
+            # ── Step 2: Reasoning (Groq) ───────────────────────────────────
             yield send("step", {"step": 2, "status": "active", "msg": "Reasoning Agent analyzing architecture..."})
             yield send("agent_msg", {"agent": "Reasoning", "abbr": "RES", "model": "Llama 3.3 70B", "time": ts(),
                 "text": f"Received <strong>{sel} files</strong>. Building dependency map, cross-referencing imports..."})
@@ -89,6 +96,58 @@ async def analyze(url: str):
             yield send("agent_msg", {"agent": "Reasoning", "abbr": "RES", "model": "Llama 3.3 70B", "time": ts(),
                 "text": f"Architecture: <strong>{arch_p} MVC ({arch_c}% conf)</strong>. Complexity: <strong>{comp_l} {comp_s}/100</strong>. <strong>{len(mods)} modules</strong> detected."})
             yield send("step", {"step": 2, "status": "done", "dur": reason_dur})
+
+            # ── Step 2.5: Azure AI Foundry — Phi-4-mini-reasoning ──────────
+            from azure_reasoning import run_azure_reasoning, merge_azure_into_analysis
+            has_foundry = bool(os.getenv("FOUNDRY_PROJECT_ENDPOINT"))
+            foundry_model = os.getenv("MODEL_DEPLOYMENT_NAME", "phi-4-mini-reasoning")
+            azure_dur = 0.0
+            if has_foundry:
+                yield send("step", {"step": 25, "status": "active",
+                    "msg": f"Azure AI Foundry ({foundry_model}) — deep chain-of-thought reasoning..."})
+                yield send("agent_msg", {
+                    "agent": "Azure Phi-4", "abbr": "PHI",
+                    "model": foundry_model,
+                    "time": ts(),
+                    "text": (
+                        f"<strong>Microsoft Azure AI Foundry</strong> — running "
+                        f"<strong>{foundry_model}</strong> on Groq analysis. "
+                        "Validating architecture verdict and security findings with chain-of-thought reasoning..."
+                    ),
+                })
+                t_az = time.time()
+                azure_result = run_azure_reasoning(analysis)
+                azure_dur = round(time.time() - t_az, 1)
+                analysis = merge_azure_into_analysis(analysis, azure_result)
+                az_status = azure_result.get("_azure_status", "skipped")
+                if az_status == "success":
+                    az_data = azure_result.get("azure_reasoning") or {}
+                    verdict_agrees = az_data.get("architecture_verdict", {}).get("agrees_with_primary", True)
+                    verdict_conf = az_data.get("architecture_verdict", {}).get("confidence", 0)
+                    n_risks = len(az_data.get("risk_ranking", []))
+                    cot_summary = az_data.get("phi4_chain_of_thought_summary", "")
+                    agree_str = "agrees" if verdict_agrees else "<strong>challenges</strong>"
+                    tok = azure_result.get("_azure_token_usage", {}).get("total_tokens", 0)
+                    yield send("agent_msg", {
+                        "agent": "Azure Phi-4", "abbr": "PHI",
+                        "model": foundry_model,
+                        "time": ts(),
+                        "text": (
+                            f"Phi-4 {agree_str} with architecture verdict ({verdict_conf}% confidence). "
+                            f"<strong>{n_risks} risks ranked</strong>. "
+                            f"{cot_summary} "
+                            f"(<strong>{tok:,} tokens</strong> used)"
+                        ),
+                    })
+                    yield send("step", {"step": 25, "status": "done", "dur": azure_dur})
+                else:
+                    err = azure_result.get("_azure_error", "Unknown error")
+                    yield send("agent_msg", {
+                        "agent": "Azure Phi-4", "abbr": "PHI",
+                        "model": foundry_model, "time": ts(),
+                        "text": f"Azure Foundry step skipped or errored: {err[:120]}",
+                    })
+                    yield send("step", {"step": 25, "status": "done", "dur": azure_dur})
 
             # ── Step 3: Action ─────────────────────────────────────────────
             yield send("step", {"step": 3, "status": "active", "msg": "Action Agent generating recommendations..."})
@@ -140,6 +199,11 @@ async def analyze(url: str):
                     "architecture_summary": analysis.get("architecture_summary", ""),
                     "security_surface": analysis.get("security_surface", []),
                     "reasoning_trace": analysis.get("reasoning_trace", []),
+                    # Azure AI Foundry enrichment fields
+                    "azure_reasoning": analysis.get("azure_reasoning"),
+                    "_azure_status": analysis.get("_azure_status", "skipped"),
+                    "_azure_model_used": analysis.get("_azure_model_used"),
+                    "_azure_token_usage": analysis.get("_azure_token_usage"),
                 },
                 "action": {
                     "improvements": action_data.get("improvements", []),
@@ -148,7 +212,14 @@ async def analyze(url: str):
                     "onboarding_guide": action_data.get("onboarding_guide", []),
                 },
                 "graph_b64": graph_b64,
-                "durations": {"fetch": fetch_dur, "perception": percep_dur, "reasoning": reason_dur, "action": action_dur, "total": total},
+                "durations": {
+                    "fetch": fetch_dur,
+                    "perception": percep_dur,
+                    "reasoning": reason_dur,
+                    "azure_reasoning": azure_dur,
+                    "action": action_dur,
+                    "total": total,
+                },
             })
 
         except ValueError as e:
@@ -297,4 +368,32 @@ async def generate_pr(request: Request):
         return pr
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+# ── Azure AI Foundry — Direct reasoning endpoint ──────────────────────────────
+@app.post("/api/azure-reasoning")
+async def azure_reasoning_endpoint(request: Request):
+    """
+    Standalone endpoint: run Phi-4-mini-reasoning on an existing Groq analysis.
+    POST body: { "analysis": <groq_analysis_dict> }
+    Returns the Azure Foundry enrichment dict directly.
+    """
+    body = await request.json()
+    analysis = body.get("analysis", {})
+    if not analysis:
+        return JSONResponse({"error": "analysis field required"}, status_code=400)
+    try:
+        from azure_reasoning import run_azure_reasoning, merge_azure_into_analysis
+        azure_result = run_azure_reasoning(analysis)
+        enriched = merge_azure_into_analysis(analysis, azure_result)
+        return {
+            "azure_status": azure_result.get("_azure_status"),
+            "azure_model": azure_result.get("_azure_model_used"),
+            "azure_reasoning": azure_result.get("azure_reasoning"),
+            "token_usage": azure_result.get("_azure_token_usage"),
+            "error": azure_result.get("_azure_error"),
+            "security_surface_enriched": enriched.get("security_surface", []),
+        }
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {str(e)}"}, status_code=500)
 

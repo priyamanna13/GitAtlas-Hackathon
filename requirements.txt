@@ -6,3 +6,7 @@ networkx
 matplotlib
 python-dotenv
 PyGithub
+# Azure AI Foundry — Phi-4-mini-reasoning integration
+azure-ai-projects==2.2.0
+azure-identity
+openai
