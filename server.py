@@ -286,7 +286,7 @@ Always reference specific files and modules. Provide code examples when relevant
         return {"reply": reply, "model": "Llama 3.3 70B (fallback)", "via": "groq_fallback", "note": str(e)}
 
 
-# ── PR Creation (Simulated) ────────────────────────────────────────────────────
+# ── PR Creation  ────────────────────────────────────────────────────
 @app.post("/api/pr")
 async def generate_pr(request: Request):
     body = await request.json()

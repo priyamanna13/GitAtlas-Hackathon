@@ -167,13 +167,13 @@ def _fallback_actions(analysis):
 
 
 def generate_pr_draft(analysis: dict, pr_type: str = "refactor") -> dict:
-    """Generate a simulated PR draft based on top improvement recommendation.
+    """Generate an AI-powered GitHub Pull Request draft based on the highest-priority repository improvement.
 
-    Enhancements:
-    - Improved LLM prompt for a richer PR draft
-    - Adds implementation_summary, affected_modules, testing_checklist, risk_assessment
-    - Keeps existing API fields for backward compatibility
-    """
+Enhancements:
+- Professional LLM prompt for structured PR generation
+- Includes implementation summary, affected modules, testing checklist, and risk assessment
+- Maintains backward compatibility with the existing API response
+"""
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
     # Select improvements from either raw analysis or previously-annotated _analysis
     imps = analysis.get("_analysis", {}).get("improvements", []) if "_analysis" in analysis else analysis.get("improvements", [])
@@ -183,8 +183,7 @@ def generate_pr_draft(analysis: dict, pr_type: str = "refactor") -> dict:
 
     # Improved, explicit prompt guiding the model to produce a structured, professional PR draft.
     prompt = f"""
-You are an expert developer and release manager. Produce a realistic GitHub Pull Request draft for the requested improvement.
-
+You are an expert developer and release manager. Produce a professional GitHub Pull Request draft based on the most critical improvement identified in the repository analysis.
 Context:
 - Project tech stack: {', '.join(str(s) for s in stack) or 'Unknown'}
 - Architecture: {arch.get('pattern', 'Monolithic')}
@@ -237,8 +236,8 @@ Be specific and reference likely modules or files where applicable. Keep output 
     except Exception as e:
         # Fallback retains original shape and adds the new optional fields for compatibility
         return {
-            "pr_title": f"fix: {top.get('title','Improvement')}",
-            "pr_branch": "feature/automated-improvement",
+            "pr_title": f"feat: {top.get('title','Improvement')}",
+            "pr_branch": f"feature/{top.get('title','improvement').lower().replace(' ','-')[:40]}",
             "pr_body": f"## Summary\n\nAddresses: **{top.get('title')}**\n\n## Problem\n\n{top.get('problem','')}\n\n## Solution\n\n{top.get('solution','')}\n\n## Testing\n\nManual testing completed.",
             "implementation_summary": top.get('solution','See PR body'),
             "affected_modules": [m.get('name') for m in analysis.get('module_map',[])][:5],
