@@ -81,19 +81,20 @@ Return ONLY valid JSON (no markdown):
 For security_surface: identify REAL issues in the actual files — hardcoded secrets, missing auth, SQL injection risks, exposed env vars, missing input validation. Be specific with file names.
 For reasoning_trace: show your actual thinking process — what you looked at, what patterns you spotted, how you connected dots."""
 
-    resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role":"system","content":"Senior software architect. Return only valid JSON. No markdown. No preamble."},
-                  {"role":"user","content":prompt}],
-        temperature=0.2, max_tokens=4000,
-    )
-    text = resp.choices[0].message.content.strip()
-    if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
-    elif "```" in text: text = "\n".join(text.split("\n")[1:-1])
-
     try:
+        resp = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role":"system","content":"Senior software architect. Return only valid JSON. No markdown. No preamble."},
+                      {"role":"user","content":prompt}],
+            temperature=0.2, max_tokens=4000,
+        )
+        text = resp.choices[0].message.content.strip()
+        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text: text = "\n".join(text.split("\n")[1:-1])
+
         analysis = json.loads(text)
-    except:
+    except Exception as ge:
+        print(f"[Groq] Warning: API call failed ({type(ge).__name__}: {str(ge)}). Falling back to mock analysis.")
         analysis = _fallback(perception_data)
 
     # Normalize security_surface — support both old (string) and new (object) format

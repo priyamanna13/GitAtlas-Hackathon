@@ -29,6 +29,7 @@
   --av-per-bg: #1e3a5f; --av-per-fg: #4a7fd4; --bbl-per-bg: #2c3a4a;
   --av-rea-bg: #2a1e3a; --av-rea-fg: #a78bfa; --bbl-rea-bg: #322a42;
   --av-act-bg: #1a2e1e; --av-act-fg: #4ade80; --bbl-act-bg: #2a3a2e;
+  --av-phi-bg: #0c3d4e; --av-phi-fg: #00bcd4; --bbl-phi-bg: #1e2d35;
 
   /* Apple-style smooth easing */
   --ease-apple: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -54,6 +55,7 @@
   --av-per-bg: #e0f2fe; --av-per-fg: #0284c7; --bbl-per-bg: #f0f9ff;
   --av-rea-bg: #f3e8ff; --av-rea-fg: #9333ea; --bbl-rea-bg: #faf5ff;
   --av-act-bg: #dcfce7; --av-act-fg: #16a34a; --bbl-act-bg: #f0fdf4;
+  --av-phi-bg: #e0f7fa; --av-phi-fg: #00acc1; --bbl-phi-bg: #f2fbfd;
 }
 
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -201,6 +203,7 @@ html,body {
 .av-per{background:var(--av-per-bg);color:var(--av-per-fg);}
 .av-rea{background:var(--av-rea-bg);color:var(--av-rea-fg);}
 .av-act{background:var(--av-act-bg);color:var(--av-act-fg);}
+.av-phi{background:var(--av-phi-bg);color:var(--av-phi-fg);}
 .msg-wrap{display:flex;flex-direction:column;gap:6px;max-width:65%;}
 .msg-wrap-r{display:flex;flex-direction:column;gap:6px;max-width:65%;align-items:flex-end;}
 .msg-meta{font-size:13px;color:var(--text-dark);display:flex;gap:8px;align-items:center; transition: color 0.4s;}
@@ -209,6 +212,7 @@ html,body {
 .bbl-per{background:var(--bbl-per-bg); border-top-left-radius: 4px;}
 .bbl-rea{background:var(--bbl-rea-bg); border-top-right-radius: 4px;}
 .bbl-act{background:var(--bbl-act-bg); border-top-left-radius: 4px;}
+.bbl-phi{background:var(--bbl-phi-bg); border-top-left-radius: 4px;}
 #typing-row{width:100%;max-width:760px;margin-top:16px;display:none;}
 .typing{display:flex;align-items:center;gap:6px;padding:14px 18px;background:var(--bg-input);border-radius:14px; border-top-left-radius: 4px; width:fit-content;}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--text-dark);animation:blink 1.4s infinite var(--ease-apple);}
@@ -719,9 +723,9 @@ function analyze(){
 
 function appendLiveMsg(msg){
   const box = document.getElementById('live-msgs');
-  const avC = {Perception:'av-per',Reasoning:'av-rea',Action:'av-act'};
-  const bbC = {Perception:'bbl-per',Reasoning:'bbl-rea',Action:'bbl-act'};
-  const abC = {Perception:'PER',Reasoning:'REA',Action:'ACT'};
+  const avC = {Perception:'av-per',Reasoning:'av-rea',Action:'av-act', 'Azure Phi-4':'av-phi'};
+  const bbC = {Perception:'bbl-per',Reasoning:'bbl-rea',Action:'bbl-act', 'Azure Phi-4':'bbl-phi'};
+  const abC = {Perception:'PER',Reasoning:'REA',Action:'ACT', 'Azure Phi-4':'PHI'};
   const av = avC[msg.agent]||'av-per';
   const bb = bbC[msg.agent]||'bbl-per';
   const ab = abC[msg.agent]||msg.abbr||'?';
@@ -818,6 +822,24 @@ function renderOverview(){
         <div style="font-size:13px;color:var(--text-dark);margin-top:8px;">— Reasoning Agent · Llama 3.3 70B</div>
       </div>
     </div>`:''}
+    ${analysis.azure_reasoning && analysis._azure_status === 'success' ? `<div class="row stagger-3" style="flex:0.9; margin-top: 16px;">
+      <div class="card" style="flex:1; border: 1px solid rgba(0,188,212,0.3); background: rgba(0,188,212,0.02);">
+        <div class="lbl" style="color:#00bcd4; display:flex; align-items:center; gap:8px; font-weight:700;">
+          <span>🛡️ Azure AI Foundry · Microsoft Phi-4 Verdict</span>
+          <span style="font-size:11px; text-transform:none; font-weight:400; color:var(--text-dark);">(Deployment: ${esc(analysis._azure_model_used || 'phi-4-mini-reasoning')})</span>
+        </div>
+        <div style="font-size:15px; color:var(--text-main); font-weight:600; margin-bottom:8px;">
+          Verdict: ${analysis.azure_reasoning.architecture_verdict.agrees_with_primary ? 'Confirmed' : 'Challenged'} 
+          (${esc(analysis.azure_reasoning.architecture_verdict.pattern_confirmed)} @ ${analysis.azure_reasoning.architecture_verdict.confidence}% confidence)
+        </div>
+        <div style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:8px;">
+          ${esc(analysis.azure_reasoning.architecture_verdict.reasoning)}
+        </div>
+        <div style="font-size:13px; color:var(--text-dark); border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 8px;">
+          <strong>Deep Think Summary:</strong> ${esc(analysis.azure_reasoning.phi4_chain_of_thought_summary)}
+        </div>
+      </div>
+    </div>` : ''}
   </div>`;
 }
 
@@ -827,9 +849,9 @@ function renderOverview(){
 function renderAgentRoom(){
   const msgs = G.agentMsgs;
   const durs = G.data ? G.data.durations : {};
-  const avC = {Perception:'av-per',Reasoning:'av-rea',Action:'av-act'};
-  const bbC = {Perception:'bbl-per',Reasoning:'bbl-rea',Action:'bbl-act'};
-  const abC = {Perception:'PER',Reasoning:'REA',Action:'ACT'};
+  const avC = {Perception:'av-per',Reasoning:'av-rea',Action:'av-act', 'Azure Phi-4':'av-phi'};
+  const bbC = {Perception:'bbl-per',Reasoning:'bbl-rea',Action:'bbl-act', 'Azure Phi-4':'bbl-phi'};
+  const abC = {Perception:'PER',Reasoning:'REA',Action:'ACT', 'Azure Phi-4':'PHI'};
   let html = '';
   
   // Re-render past messages as statically styled staggered elements
@@ -862,7 +884,7 @@ function renderAgentRoom(){
     ${G.data?`<div class="card stagger-4" style="margin-top:24px;display:flex;gap:32px;flex-wrap:wrap;flex-shrink:0;">
       <span style="font-size:15px;color:var(--text-muted);">Messages: <strong style="color:var(--text-main);">${msgs.length}</strong></span>
       <span style="font-size:15px;color:var(--text-muted);">Total: <strong style="color:var(--ui-orange);font-family:monospace;">${durs.total||0}s</strong></span>
-      <span style="font-size:15px;color:var(--text-muted);">Platform: <strong style="color:#4ADE80;">Groq</strong></span>
+      <span style="font-size:15px;color:var(--text-muted);">Platform: <strong style="color:#4ADE80;">Groq${(G.data.analysis||{})._azure_status === 'success' ? ' + Azure AI Foundry' : ''}</strong></span>
     </div>`:''}
   </div>`;
 }
@@ -1318,6 +1340,13 @@ function renderSecurity(){
       ${s.file?`<div style="font-family:monospace;font-size:13px;color:var(--ui-orange);margin-bottom:8px;background:var(--bg-input);padding:6px 10px;border-radius:6px;display:inline-block;">${esc(s.file)}${s.line_hint?' · '+esc(s.line_hint):''}</div>`:''} 
       <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:${s.recommendation?'10px':'0'};">${esc(s.description||'')}</div>
       ${s.recommendation?`<div style="font-size:13px;font-weight:700;color:#4ADE80;margin-bottom:4px;">FIX</div><div style="font-size:14px;color:var(--text-muted);line-height:1.5;">${esc(s.recommendation)}</div>`:'' }
+      ${s.phi4_reasoning ? `<div style="margin-top:12px;padding:12px;background:rgba(0,188,212,0.06);border:1px dashed rgba(0,188,212,0.25);border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:#00bcd4;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+          <span>🛡️ Azure Phi-4 Re-evaluation</span>
+          ${s.phi4_confidence ? `<span style="font-size:11px;font-weight:400;color:var(--text-dark);">(${s.phi4_confidence}% confidence)</span>` : ''}
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">${esc(s.phi4_reasoning)}</div>
+      </div>` : ''}
     </div>`;
   }).join('');
 

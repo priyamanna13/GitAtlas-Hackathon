@@ -53,19 +53,20 @@ Return ONLY valid JSON (no markdown):
 
 Provide exactly 5 improvements (Critical first). Be specific to the actual tech stack."""
 
-    resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role":"system","content":"Senior architect. Return only valid JSON. No markdown. No preamble."},
-                  {"role":"user","content":prompt}],
-        temperature=0.3, max_tokens=4096,
-    )
-    text = resp.choices[0].message.content.strip()
-    if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
-    elif "```" in text: text = "\n".join(text.split("\n")[1:-1])
-
     try:
+        resp = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role":"system","content":"Senior architect. Return only valid JSON. No markdown. No preamble."},
+                      {"role":"user","content":prompt}],
+            temperature=0.3, max_tokens=4096,
+        )
+        text = resp.choices[0].message.content.strip()
+        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text: text = "\n".join(text.split("\n")[1:-1])
+
         data = json.loads(text)
-    except:
+    except Exception as ge:
+        print(f"[Groq] Warning: Action Agent call failed ({type(ge).__name__}: {str(ge)}). Falling back to mock actions.")
         data = _fallback_actions(analysis)
 
     data["_analysis"] = analysis

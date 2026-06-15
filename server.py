@@ -99,55 +99,54 @@ async def analyze(url: str):
 
             # ── Step 2.5: Azure AI Foundry — Phi-4-mini-reasoning ──────────
             from azure_reasoning import run_azure_reasoning, merge_azure_into_analysis
-            has_foundry = bool(os.getenv("FOUNDRY_PROJECT_ENDPOINT"))
             foundry_model = os.getenv("MODEL_DEPLOYMENT_NAME", "phi-4-mini-reasoning")
             azure_dur = 0.0
-            if has_foundry:
-                yield send("step", {"step": 25, "status": "active",
-                    "msg": f"Azure AI Foundry ({foundry_model}) — deep chain-of-thought reasoning..."})
+            
+            yield send("step", {"step": 25, "status": "active",
+                "msg": f"Azure AI Foundry ({foundry_model}) — deep chain-of-thought reasoning..."})
+            yield send("agent_msg", {
+                "agent": "Azure Phi-4", "abbr": "PHI",
+                "model": foundry_model,
+                "time": ts(),
+                "text": (
+                    f"<strong>Microsoft Azure AI Foundry</strong> — running "
+                    f"<strong>{foundry_model}</strong> on Groq analysis. "
+                    "Validating architecture verdict and security findings with chain-of-thought reasoning..."
+                ),
+            })
+            t_az = time.time()
+            azure_result = run_azure_reasoning(analysis)
+            azure_dur = round(time.time() - t_az, 1)
+            analysis = merge_azure_into_analysis(analysis, azure_result)
+            az_status = azure_result.get("_azure_status", "skipped")
+            if az_status == "success":
+                az_data = azure_result.get("azure_reasoning") or {}
+                verdict_agrees = az_data.get("architecture_verdict", {}).get("agrees_with_primary", True)
+                verdict_conf = az_data.get("architecture_verdict", {}).get("confidence", 0)
+                n_risks = len(az_data.get("risk_ranking", []))
+                cot_summary = az_data.get("phi4_chain_of_thought_summary", "")
+                agree_str = "agrees" if verdict_agrees else "<strong>challenges</strong>"
+                tok = azure_result.get("_azure_token_usage", {}).get("total_tokens", 0)
                 yield send("agent_msg", {
                     "agent": "Azure Phi-4", "abbr": "PHI",
                     "model": foundry_model,
                     "time": ts(),
                     "text": (
-                        f"<strong>Microsoft Azure AI Foundry</strong> — running "
-                        f"<strong>{foundry_model}</strong> on Groq analysis. "
-                        "Validating architecture verdict and security findings with chain-of-thought reasoning..."
+                        f"Phi-4 {agree_str} with architecture verdict ({verdict_conf}% confidence). "
+                        f"<strong>{n_risks} risks ranked</strong>. "
+                        f"{cot_summary} "
+                        f"(<strong>{tok:,} tokens</strong> used)"
                     ),
                 })
-                t_az = time.time()
-                azure_result = run_azure_reasoning(analysis)
-                azure_dur = round(time.time() - t_az, 1)
-                analysis = merge_azure_into_analysis(analysis, azure_result)
-                az_status = azure_result.get("_azure_status", "skipped")
-                if az_status == "success":
-                    az_data = azure_result.get("azure_reasoning") or {}
-                    verdict_agrees = az_data.get("architecture_verdict", {}).get("agrees_with_primary", True)
-                    verdict_conf = az_data.get("architecture_verdict", {}).get("confidence", 0)
-                    n_risks = len(az_data.get("risk_ranking", []))
-                    cot_summary = az_data.get("phi4_chain_of_thought_summary", "")
-                    agree_str = "agrees" if verdict_agrees else "<strong>challenges</strong>"
-                    tok = azure_result.get("_azure_token_usage", {}).get("total_tokens", 0)
-                    yield send("agent_msg", {
-                        "agent": "Azure Phi-4", "abbr": "PHI",
-                        "model": foundry_model,
-                        "time": ts(),
-                        "text": (
-                            f"Phi-4 {agree_str} with architecture verdict ({verdict_conf}% confidence). "
-                            f"<strong>{n_risks} risks ranked</strong>. "
-                            f"{cot_summary} "
-                            f"(<strong>{tok:,} tokens</strong> used)"
-                        ),
-                    })
-                    yield send("step", {"step": 25, "status": "done", "dur": azure_dur})
-                else:
-                    err = azure_result.get("_azure_error", "Unknown error")
-                    yield send("agent_msg", {
-                        "agent": "Azure Phi-4", "abbr": "PHI",
-                        "model": foundry_model, "time": ts(),
-                        "text": f"Azure Foundry step skipped or errored: {err[:120]}",
-                    })
-                    yield send("step", {"step": 25, "status": "done", "dur": azure_dur})
+                yield send("step", {"step": 25, "status": "done", "dur": azure_dur})
+            else:
+                err = azure_result.get("_azure_error", "Unknown error")
+                yield send("agent_msg", {
+                    "agent": "Azure Phi-4", "abbr": "PHI",
+                    "model": foundry_model, "time": ts(),
+                    "text": f"Azure Foundry step skipped or errored: {err[:120]}",
+                })
+                yield send("step", {"step": 25, "status": "done", "dur": azure_dur})
 
             # ── Step 3: Action ─────────────────────────────────────────────
             yield send("step", {"step": 3, "status": "active", "msg": "Action Agent generating recommendations..."})
