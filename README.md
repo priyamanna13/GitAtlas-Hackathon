@@ -199,5 +199,5 @@ MIT License
 <div align="center">
 
 ### ⭐ If you like GitAtlas, consider giving it a star!
-
+Built with ❤️ for the Microsoft AI Agents League Hackathon.
 </div>
