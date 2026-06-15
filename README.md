@@ -6,7 +6,6 @@
 
 Understand any GitHub repository in seconds using collaborative AI agents powered by **Groq** and **Microsoft Azure AI Foundry**.
 
-🏆 **Built for Microsoft AI Agents League Hackathon 2026**
 
 <br>
 
@@ -200,7 +199,5 @@ MIT License
 <div align="center">
 
 ### ⭐ If you like GitAtlas, consider giving it a star!
-
-Built with ❤️ for the Microsoft AI Agents League Hackathon.
 
 </div>
