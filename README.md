@@ -51,11 +51,8 @@ To improve reliability, GitAtlas uses **Microsoft Azure AI Foundry (Phi-4-mini-r
 
 ## 🏗 System Architecture
 
-> Replace this with your final architecture diagram.
+<img width="1024" height="572" alt="image" src="https://github.com/user-attachments/assets/2cd2ffac-7967-4e62-a35f-81446d3e4a99" />
 
-```md
-![GitAtlas Architecture](docs/architecture.png)
-```
 
 ---
 
