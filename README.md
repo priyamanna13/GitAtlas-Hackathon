@@ -9,6 +9,16 @@
 
 Simply provide a GitHub repository URL, and specialized AI agents collaborate to understand architecture, assess security, generate documentation, draft pull requests, compare repositories, answer developer questions, and recommend improvements—all from a single intelligent workspace powered by **Groq** and **Microsoft Azure AI Foundry**.
 
+<br>
+
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Azure AI Foundry](https://img.shields.io/badge/Azure-AI%20Foundry-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)
+![Azure OpenAI](https://img.shields.io/badge/Azure-OpenAI-0078D4?style=for-the-badge)
+![Phi-4](https://img.shields.io/badge/Phi--4-mini--reasoning-5C2D91?style=for-the-badge)
+![Groq](https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge)
+![GitHub API](https://img.shields.io/badge/GitHub-API-181717?style=for-the-badge&logo=github)
+![License](https://img.shields.io/badge/License-MIT-blueviolet?style=for-the-badge)
 </div>
 
 ---
@@ -61,6 +71,12 @@ To improve reliability, GitAtlas uses **Microsoft Azure AI Foundry (Phi-4-mini-r
 
 ---
 
+> **Why GitAtlas?**
+>
+> Modern developers often switch between multiple tools for repository understanding, architecture analysis, security assessment, documentation generation, pull request creation, and developer assistance. GitAtlas unifies this entire software engineering workflow through specialized AI agents operating from a single intelligent platform, enabling developers to understand and act on repositories faster with greater confidence.
+
+---
+
 ## ✨ Features
 
 - 🧠 Multi-Agent Repository Analysis
@@ -76,11 +92,6 @@ To improve reliability, GitAtlas uses **Microsoft Azure AI Foundry (Phi-4-mini-r
 - ⚡ Real-Time SSE Streaming
 ---
 
-> **Why GitAtlas?**
->
-> Modern developers often switch between multiple tools for repository understanding, architecture analysis, security assessment, documentation generation, pull request creation, and developer assistance. GitAtlas unifies this entire software engineering workflow through specialized AI agents operating from a single intelligent platform, enabling developers to understand and act on repositories faster with greater confidence.
-
----
 ## 🏗 System Architecture
 
 <img width="1024" height="572" alt="image" src="https://github.com/user-attachments/assets/2cd2ffac-7967-4e62-a35f-81446d3e4a99" />
