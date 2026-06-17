@@ -5,7 +5,7 @@
 
 ### AI-Powered Multi-Agent Repository Intelligence Layer
 
-**GitAtlas is the Agentic AI Intelligence Layer for GitHub repositories.**
+**GitAtlas is an Agentic AI Intelligence Layer for GitHub repositories.**
 
 Simply provide a GitHub repository URL, and specialized AI agents collaborate to understand architecture, assess security, generate documentation, draft pull requests, compare repositories, answer developer questions, and recommend improvements—all from a single intelligent workspace powered by **Groq** and **Microsoft Azure AI Foundry**.
 
@@ -50,7 +50,8 @@ https://github.com/user-attachments/assets/aa4b13df-6fc1-4441-bb2f-143e3ec7933b
 <img width="1881" height="906" alt="PR draft" src="https://github.com/user-attachments/assets/d9d0db1f-9092-4e6e-9bc7-adf8a4a15972" />
 <img width="1900" height="898" alt="Modernization plan" src="https://github.com/user-attachments/assets/33145c09-1996-4285-8fa0-93d64c81b9f9" />
 <img width="1890" height="898" alt="Security findings" src="https://github.com/user-attachments/assets/25f03e03-866d-48f5-aa09-5f994fc29795" />
-<img width="1902" height="902" alt="Recommendations" src="https://github.com/user-attachments/assets/02f21ae1-27de-4475-923a-3b97a61649ef" /><img width="1911" height="904" alt="Live Agent pipeline" src="https://github.com/user-attachments/assets/f36437e5-da54-414c-a9b2-fece4f52229d" />
+<img width="1902" height="902" alt="Recommendations" src="https://github.com/user-attachments/assets/02f21ae1-27de-4475-923a-3b97a61649ef" />
+<img width="1911" height="904" alt="Live Agent pipeline" src="https://github.com/user-attachments/assets/f36437e5-da54-414c-a9b2-fece4f52229d" />
 
 
 
@@ -90,6 +91,7 @@ To improve reliability, GitAtlas uses **Microsoft Azure AI Foundry (Phi-4-mini-r
 - ⚖ Repository Comparison
 - 💡 AI Engineering Recommendations
 - ⚡ Real-Time SSE Streaming
+  
 ---
 
 ## 🏗 System Architecture
