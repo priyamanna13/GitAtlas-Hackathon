@@ -5,19 +5,9 @@
 
 ### AI-Powered Multi-Agent Repository Intelligence Layer
 
+**GitAtlas is the Agentic AI Intelligence Layer for GitHub repositories.**
 
-GitAtlas serves as the intelligence layer for modern software engineering. Simply provide a GitHub repository URL, and specialized AI agents collaborate to understand architecture, assess security, generate documentation, draft pull requests, compare repositories, answer developer questions, and recommend improvements—all from a single intelligent workspace powered by **Groq** and **Microsoft Azure AI Foundry**.
-
-<br>
-
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![Azure AI Foundry](https://img.shields.io/badge/Azure-AI%20Foundry-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)
-![Azure OpenAI](https://img.shields.io/badge/Azure-OpenAI-0078D4?style=for-the-badge)
-![Phi-4](https://img.shields.io/badge/Phi--4-mini--reasoning-5C2D91?style=for-the-badge)
-![Groq](https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge)
-![GitHub API](https://img.shields.io/badge/GitHub-API-181717?style=for-the-badge&logo=github)
-![License](https://img.shields.io/badge/License-MIT-blueviolet?style=for-the-badge)
+Simply provide a GitHub repository URL, and specialized AI agents collaborate to understand architecture, assess security, generate documentation, draft pull requests, compare repositories, answer developer questions, and recommend improvements—all from a single intelligent workspace powered by **Groq** and **Microsoft Azure AI Foundry**.
 
 </div>
 
@@ -25,47 +15,37 @@ GitAtlas serves as the intelligence layer for modern software engineering. Simpl
 
 ## 🎥 Demo
 
-> Watch GitAtlas orchestrate multiple AI agents to analyze, understand and improve GitHub repositories.
+> Watch GitAtlas orchestrate multiple AI agents to analyze, understand, and improve GitHub repositories.
 
-- 📺 **Demo Video:** 
+🎬 **Watch the Demo**
 
 https://github.com/user-attachments/assets/aa4b13df-6fc1-4441-bb2f-143e3ec7933b
 
 
 ---
 
-# 📸 Interface Preview
+## 📸 Interface Preview
 
-## 🏠 Dashboard
-<img width="1897" height="911" alt="Dashboard" src="https://github.com/user-attachments/assets/94e34c00-78e5-4685-80ee-ebd49132be01" />
+> Explore GitAtlas in action through the screenshots below.
 
-## 🚀 Get Started
-<img width="1901" height="904" alt="initial screen" src="https://github.com/user-attachments/assets/2b8ec306-e3d0-4ca0-afe6-fa6df2a1550e" />
+<details>
+<summary><b>🖼 Click to view the complete interface gallery</b></summary>
 
-## 💬 AI Repository Chat
-<img width="1887" height="907" alt="AI chat" src="https://github.com/user-attachments/assets/3165ac5e-4c2b-4fd6-b921-0fe471e83d20" />
 
-## 🔒 Security Findings
-<img width="1890" height="898" alt="Security findings" src="https://github.com/user-attachments/assets/9946a591-0b88-428c-9622-f089d443a8b7" />
+<img width="1901" height="904" alt="initial screen" src="https://github.com/user-attachments/assets/8549b96f-6fb8-4979-874e-979c1ba1a0ca" />
+<img width="1897" height="911" alt="Dashboard" src="https://github.com/user-attachments/assets/6f152f5d-6a94-42e6-b279-fdfc66e4098d" />
+<img width="1890" height="898" alt="AutoDocumentation" src="https://github.com/user-attachments/assets/1b6693a8-5dd6-4fe2-9693-d084dd0aec4e" />
+<img width="1887" height="907" alt="AI chat" src="https://github.com/user-attachments/assets/66fcee90-48e7-4ae3-898c-4a4de2f22155" />
+<img width="1897" height="900" alt="Compare repos" src="https://github.com/user-attachments/assets/0b7329ff-cbbc-4a48-9239-15c8215ea2f8" />
+<img width="1881" height="906" alt="PR draft" src="https://github.com/user-attachments/assets/d9d0db1f-9092-4e6e-9bc7-adf8a4a15972" />
+<img width="1900" height="898" alt="Modernization plan" src="https://github.com/user-attachments/assets/33145c09-1996-4285-8fa0-93d64c81b9f9" />
+<img width="1890" height="898" alt="Security findings" src="https://github.com/user-attachments/assets/25f03e03-866d-48f5-aa09-5f994fc29795" />
+<img width="1902" height="902" alt="Recommendations" src="https://github.com/user-attachments/assets/02f21ae1-27de-4475-923a-3b97a61649ef" /><img width="1911" height="904" alt="Live Agent pipeline" src="https://github.com/user-attachments/assets/f36437e5-da54-414c-a9b2-fece4f52229d" />
 
-## 📚 AI Documentation Generation
-<img width="1890" height="898" alt="AutoDocumentation" src="https://github.com/user-attachments/assets/980fdd80-10bb-4f92-8730-d1a0c840dcdc" />
 
-## 📝 AI Pull Request Draft
-<img width="1881" height="906" alt="PR draft" src="https://github.com/user-attachments/assets/5eded9db-08c3-44fe-9d3a-fa37709e8331" />
 
-## ⚖ Repository Comparison
-<img width="1897" height="900" alt="Compare repos" src="https://github.com/user-attachments/assets/0d7ca2c3-098c-4737-810d-dbd9eb6002b5" />
 
-## 💡 Engineering Recommendations
-<img width="1902" height="902" alt="Recommendations" src="https://github.com/user-attachments/assets/4d7366d1-03ae-4b38-b5e3-460998f49483" />
-
-## 🔄 Modernization Plan
-<img width="1900" height="898" alt="Modernization plan" src="https://github.com/user-attachments/assets/49e2ba3b-0c82-4679-bc89-ae6e612fcb0c" />
-
-## ⚙ Live Agent Pipeline
-<img width="1911" height="904" alt="Live Agent pipeline" src="https://github.com/user-attachments/assets/aee7a589-2267-4e16-a561-d44d6d07d2ac" />
-
+</details>
 
 ---
 
@@ -89,14 +69,18 @@ To improve reliability, GitAtlas uses **Microsoft Azure AI Foundry (Phi-4-mini-r
 - 🔒 Security & Risk Assessment
 - 📊 Complexity Analysis
 - 📚 AI Documentation Generation
-- 💬 Repository Chat Assistant
-- 📝 AI Pull Request Generator
+- 💬 Context-Aware Repository Chat
+- 📝 AI-Assisted Pull Request Generation
 - ⚖ Repository Comparison
-- 🚀 Engineering Recommendations
+- 💡 AI Engineering Recommendations
 - ⚡ Real-Time SSE Streaming
-
 ---
 
+> **Why GitAtlas?**
+>
+> Modern developers often switch between multiple tools for repository understanding, architecture analysis, security assessment, documentation generation, pull request creation, and developer assistance. GitAtlas unifies this entire software engineering workflow through specialized AI agents operating from a single intelligent platform, enabling developers to understand and act on repositories faster with greater confidence.
+
+---
 ## 🏗 System Architecture
 
 <img width="1024" height="572" alt="image" src="https://github.com/user-attachments/assets/2cd2ffac-7967-4e62-a35f-81446d3e4a99" />
