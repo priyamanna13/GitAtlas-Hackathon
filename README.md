@@ -1,11 +1,12 @@
+
 # 🚀 GitAtlas
 
 <div align="center">
 
-### AI-Powered Multi-Agent Repository Intelligence Platform
+### AI-Powered Multi-Agent Repository Intelligence Layer
 
-Understand any GitHub repository in seconds using collaborative AI agents powered by **Groq** and **Microsoft Azure AI Foundry**.
 
+GitAtlas serves as the intelligence layer for modern software engineering. Simply provide a GitHub repository URL, and specialized AI agents collaborate to understand architecture, assess security, generate documentation, draft pull requests, compare repositories, answer developer questions, and recommend improvements—all from a single intelligent workspace powered by **Groq** and **Microsoft Azure AI Foundry**.
 
 <br>
 
@@ -22,9 +23,57 @@ Understand any GitHub repository in seconds using collaborative AI agents powere
 
 ---
 
+## 🎥 Demo
+
+> Watch GitAtlas orchestrate multiple AI agents to analyze, understand and improve GitHub repositories.
+
+- 📺 **Demo Video:** 
+
+https://github.com/user-attachments/assets/aa4b13df-6fc1-4441-bb2f-143e3ec7933b
+
+
+---
+
+# 📸 Interface Preview
+
+## 🏠 Dashboard
+<img width="1897" height="911" alt="Dashboard" src="https://github.com/user-attachments/assets/94e34c00-78e5-4685-80ee-ebd49132be01" />
+
+## 🚀 Get Started
+<img width="1901" height="904" alt="initial screen" src="https://github.com/user-attachments/assets/2b8ec306-e3d0-4ca0-afe6-fa6df2a1550e" />
+
+## 💬 AI Repository Chat
+<img width="1887" height="907" alt="AI chat" src="https://github.com/user-attachments/assets/3165ac5e-4c2b-4fd6-b921-0fe471e83d20" />
+
+## 🔒 Security Findings
+<img width="1890" height="898" alt="Security findings" src="https://github.com/user-attachments/assets/9946a591-0b88-428c-9622-f089d443a8b7" />
+
+## 📚 AI Documentation Generation
+<img width="1890" height="898" alt="AutoDocumentation" src="https://github.com/user-attachments/assets/980fdd80-10bb-4f92-8730-d1a0c840dcdc" />
+
+## 📝 AI Pull Request Draft
+<img width="1881" height="906" alt="PR draft" src="https://github.com/user-attachments/assets/5eded9db-08c3-44fe-9d3a-fa37709e8331" />
+
+## ⚖ Repository Comparison
+<img width="1897" height="900" alt="Compare repos" src="https://github.com/user-attachments/assets/0d7ca2c3-098c-4737-810d-dbd9eb6002b5" />
+
+## 💡 Engineering Recommendations
+<img width="1902" height="902" alt="Recommendations" src="https://github.com/user-attachments/assets/4d7366d1-03ae-4b38-b5e3-460998f49483" />
+
+## 🔄 Modernization Plan
+<img width="1900" height="898" alt="Modernization plan" src="https://github.com/user-attachments/assets/49e2ba3b-0c82-4679-bc89-ae6e612fcb0c" />
+
+## ⚙ Live Agent Pipeline
+<img width="1911" height="904" alt="Live Agent pipeline" src="https://github.com/user-attachments/assets/aee7a589-2267-4e16-a561-d44d6d07d2ac" />
+
+
+---
+
 ## 🌟 Overview
 
 GitAtlas is an AI-powered repository intelligence platform that transforms any public GitHub repository into a comprehensive architectural report within seconds.
+
+Unlike traditional repository analysis tools, GitAtlas acts as an **Agentic AI Software Engineering Platform** where specialized AI agents collaborate to understand, analyze, secure, document, compare, and improve software repositories from a single intelligent workspace.
 
 Using a collaborative **Multi-Agent AI Architecture**, GitAtlas analyzes software architecture, detects security risks, measures complexity, generates documentation, drafts pull requests, compares repositories, and provides actionable engineering recommendations.
 
@@ -51,7 +100,6 @@ To improve reliability, GitAtlas uses **Microsoft Azure AI Foundry (Phi-4-mini-r
 ## 🏗 System Architecture
 
 <img width="1024" height="572" alt="image" src="https://github.com/user-attachments/assets/2cd2ffac-7967-4e62-a35f-81446d3e4a99" />
-
 
 ---
 
@@ -118,15 +166,10 @@ pip install -r requirements.txt
 
 ```env
 GROQ_API_KEY=
-
 GITHUB_TOKEN=
-
 AZURE_OPENAI_ENDPOINT=
-
 AZURE_OPENAI_API_KEY=
-
 AZURE_OPENAI_API_VERSION=
-
 AZURE_OPENAI_DEPLOYMENT=
 ```
 
@@ -199,5 +242,7 @@ MIT License
 <div align="center">
 
 ### ⭐ If you like GitAtlas, consider giving it a star!
+
 Built with ❤️ for the Microsoft AI Agents League Hackathon.
+
 </div>
